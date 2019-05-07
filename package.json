@@ -1,0 +1,24 @@
+{
+  "name": "botani",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/corbinpage/botani.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/corbinpage/botani/issues"
+  },
+  "homepage": "https://github.com/corbinpage/botani#readme",
+  "dependencies": {
+    "eth-dagger": "0.0.5",
+    "json-rules-engine": "^2.3.5"
+  }
+}
