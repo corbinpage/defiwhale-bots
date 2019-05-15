@@ -28,13 +28,7 @@ async function startWhaleSpotting(message) {
 	message = startTask('startWhaleSpotting', message)
 	Object.assign(message.params, {amount: 1000, aboveAmount: 500});
 
-  finishTask('startWhaleBizRules', message)
-}
-
-async function startBizRules(message) {
-	message = startTask('startBizRules', message)
-
-  finishTask('startEthTransaction', message)
+  finishTask('startBizRules', message)
 }
 
 async function startEthTransaction(message) {
@@ -95,6 +89,8 @@ function startTask(subject, message) {
 function finishTask(subject, message) {
 	// Save message and task history
 
+	console.log(`Output: ${JSON.stringify(message)}`)
+
 	addToQueue(subject, message)
 }
 
@@ -103,20 +99,27 @@ async function addToQueue(subject, message) {
 	  case 'startCdpUpdate':
 	  	startCdpUpdate(message)
 	  	break;
+	  case 'startWhaleSpotting':
+	  	startWhaleSpotting(message)
+	  	break;
 	  case 'startBizRules':
-	  	startBizRules(message)
+	  	const bizRules = require("./src/run-biz-rules/handler");
+
+	  	message = startTask('startBizRules', message)
+			let response = await bizRules.start(message);
+
+			finishTask('complete', JSON.parse(response.body).data)
 	    break;
 	  case 'startEthTransaction':
 	  	startEthTransaction(message)
 	    break;
 	  default:
-	    console.log(`No Lambda found.\n Subject: ${subject}\n Message: ${JSON.stringify(message)}`)
+	    console.log(`No Lambda found.\nSubject: ${subject}\nMessage: ${JSON.stringify(message)}`)
 	} 
 }
 
-// addToQueue('startCdpUpdate', { params: {}, taskHistory: [] })
+addToQueue('startWhaleSpotting', { params: {}, taskHistory: [] })
 
-const bizRules = require("./src/run-biz-rules/handler");
-bizRules.start();
+
 
 
