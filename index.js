@@ -108,6 +108,16 @@ async function addToQueue(subject, message) {
 	  	message = startTask('startBizRules', message)
 			let response = await bizRules.start(message);
 
+			finishTask('sendTweet', JSON.parse(response.body).data)
+	    break;
+	  case 'sendTweet':
+	  	const sendTweet = require("./src/send-tweet/handler");
+
+	  	message = startTask('sendTweet', message)
+			let response = await sendTweet.start(message);
+
+			console.log(response)
+
 			finishTask('complete', JSON.parse(response.body).data)
 	    break;
 	  case 'startEthTransaction':
