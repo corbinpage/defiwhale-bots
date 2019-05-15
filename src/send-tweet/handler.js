@@ -1,8 +1,10 @@
 'use strict';
-
-const twit = require("twit");
+require('dotenv').config()
+const Twit = require("twit");
 
 module.exports.start = async (event) => {
+	let output = JSON.parse(JSON.stringify(event))
+
 	var T = new Twit({
 	  consumer_key: process.env.TWITTER_CONSUMER_KEY,
 	  consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
@@ -10,14 +12,16 @@ module.exports.start = async (event) => {
 	  access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
 	})
 
-	let response = await T.post('statuses/update', { status: 'Testing, testing, 1, 2, 3!' })
+	// let response = await T.post('statuses/update', { status: 'Testing, testing, 1, 2, 3!' })
+	console.log('Tweet Sent!')
+	Object.assign(output.params, {tweetSent: true});
 
 	console.log(JSON.stringify(response))
 
   return {
     statusCode: 200,
     body: JSON.stringify({
-      message: 'Go Serverless v1.0! Your function executed successfully!',
+      output: output,
       input: event,
     }, null, 2),
   };

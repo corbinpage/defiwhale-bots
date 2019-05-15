@@ -114,11 +114,11 @@ async function addToQueue(subject, message) {
 	  	const sendTweet = require("./src/send-tweet/handler");
 
 	  	message = startTask('sendTweet', message)
-			let response = await sendTweet.start(message);
+			let twitterResponse = await sendTweet.start(message);
 
-			console.log(response)
+			console.log(twitterResponse)
 
-			finishTask('complete', JSON.parse(response.body).data)
+			finishTask('complete', JSON.parse(twitterResponse.body).data)
 	    break;
 	  case 'startEthTransaction':
 	  	startEthTransaction(message)
