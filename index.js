@@ -116,19 +116,17 @@ async function addToQueue(subject, message) {
 	  	message = startTask('sendTweet', message)
 			let twitterResponse = await sendTweet.start(message);
 
-			console.log(twitterResponse)
-
 			finishTask('complete', JSON.parse(twitterResponse.body).data)
 	    break;
 	  case 'startEthTransaction':
 	  	startEthTransaction(message)
 	    break;
 	  default:
-	    console.log(`No Lambda found.\nSubject: ${subject}\nMessage: ${JSON.stringify(message)}`)
+	    console.log(`------------\nNo next step\nParams: ${JSON.stringify(message.params)}\nTask History: ${JSON.stringify(message.taskHistory)}`)
 	} 
 }
 
-addToQueue('startWhaleSpotting', { params: {}, taskHistory: [] })
+addToQueue('startWhaleSpotting', { params: {amount: 1000}, taskHistory: [] })
 
 
 

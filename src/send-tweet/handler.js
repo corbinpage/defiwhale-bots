@@ -13,15 +13,14 @@ module.exports.start = async (event) => {
 	})
 
 	// let response = await T.post('statuses/update', { status: 'Testing, testing, 1, 2, 3!' })
+	let response = "temp"
 	console.log('Tweet Sent!')
 	Object.assign(output.params, {tweetSent: true});
-
-	console.log(JSON.stringify(response))
 
   return {
     statusCode: 200,
     body: JSON.stringify({
-      output: output,
+      data: output,
       input: event,
     }, null, 2),
   };

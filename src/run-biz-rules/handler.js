@@ -1,14 +1,34 @@
 'use strict';
 
 module.exports.start = async (event) => {
-	let output = JSON.parse(JSON.stringify(event))
+	const input = event.Records[0].Sns.Message
+	// let input = JSON.parse(JSON.stringify(event["Records"][0]["Sns"]["Message"]))
+	
+	console.log(typeof input)
+	console.log(typeof JSON.parse(input))
+
+	let output = JSON.parse(JSON.stringify(input))
+
+	console.log(typeof input)
+	console.log(typeof output)
 
 	//Initialize rules engine
 	const Engine = require('json-rules-engine').Engine
 	const engine = new Engine()
 
+	console.log('EVENT')
+	console.log(JSON.stringify(input))
+	console.log(input)
+	console.log(typeof input)
+	console.log(typeof output)
+	console.log(JSON.stringify(output))
+
 	// Set facts, rules, and output
-	let facts = event.params
+	let facts = input.params
+
+console.log(JSON.stringify(facts))
+
+
 	engine.addRule({
 	  conditions: {
       all: [{
@@ -38,7 +58,7 @@ module.exports.start = async (event) => {
     statusCode: 200,
     body: JSON.stringify({
       data: output,
-      input: event,
+      input: input,
     }, null, 2),
   };
 
