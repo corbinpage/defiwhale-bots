@@ -78,12 +78,5 @@ module.exports.start = async (event) => {
 		}
 	})
 
-	console.log("Input:")
-	console.log(typeof input)
-	console.log(input)
-	console.log("Output:")
-	console.log(typeof output)
-	console.log(output)
-
 	return await finishTask(output)
 };
