@@ -127,50 +127,79 @@ AWS.config.update({region: 'us-east-1'});
 // 	} 
 // }
 
-async function startFlow(flowModel, params) {
-	const sns = new AWS.SNS({apiVersion: '2010-03-31'})
-	const message = {
-		params: params,
-		flowModel: flowModel,
-		taskHistory: []
-	}
+// async function startFlow(flowModel, params) {
+// 	const sns = new AWS.SNS({apiVersion: '2010-03-31'})
+// 	const message = {
+// 		params: params,
+// 		flowModel: flowModel,
+// 		taskHistory: []
+// 	}
 
-	let snsParams = {
-	  Message: JSON.stringify(message),
-	  TopicArn: 'arn:aws:sns:us-east-1:061031305521:botani',
-	  MessageAttributes: {
-	    'task_type': {
-	      DataType: 'String',
-	      StringValue: message.flowModel[0]["task_type"]
-	    },
-	    'task_id': {
-	      DataType: 'Number',
-	      StringValue: '0'
-	    }
-    }
-	}
+// 	let snsParams = {
+// 	  Message: JSON.stringify(message),
+// 	  TopicArn: 'arn:aws:sns:us-east-1:061031305521:botani',
+// 	  MessageAttributes: {
+// 	    'task_type': {
+// 	      DataType: 'String',
+// 	      StringValue: message.flowModel[0]["task_type"]
+// 	    },
+// 	    'task_id': {
+// 	      DataType: 'Number',
+// 	      StringValue: '0'
+// 	    }
+//     }
+// 	}
 
-	var res = await sns.publish(snsParams).promise()
+// 	var res = await sns.publish(snsParams).promise()
 
-	return res
-}
+// 	return res
+// }
+
+// const flowModel = [
+// 	{
+// 		task_type: 'stay-stop-decision',
+// 		inputs: {
+// 			rule: {
+// 				"conditions": {
+// 					"priority": 1,
+// 					"all": [
+// 						{ "operator": "greaterThanInclusive", "value": 10000, "fact": "amount" }
+// 					]
+// 				},
+// 				"priority": 1,
+// 				"event": {
+// 					"type": "success",
+// 					"params": {
+// 						nextTask: "send-tweet"
+// 					}
+// 				}
+// 			}
+// 		}
+// 	},
+// 	{
+// 		task_type: 'send-tweet',
+// 		inputs: {
+// 			tweetMessage: 'Ahoy! {{amount}} {{symbol}} transfer spotted!\n\nhttps://etherscan.io/tx/{{transactionHash}}'
+// 		}
+// 	}
+// ]
 
 const flowModel = [
 	{
-		task_type: 'run-biz-rules',
+		task_type: 'stay-stop-decision',
 		inputs: {
 			rule: {
 				"conditions": {
 					"priority": 1,
 					"all": [
-						{ "operator": "greaterThanInclusive", "value": 5000, "fact": "amount" }
+						{ "operator": "greaterThanInclusive", "value": 10000, "fact": "amount" }
 					]
 				},
 				"priority": 1,
 				"event": {
 					"type": "success",
 					"params": {
-						nextTask: "send-tweet"
+						decision: true
 					}
 				}
 			}
@@ -183,11 +212,43 @@ const flowModel = [
 		}
 	}
 ]
+
+
 const inputs = {
-	amount: 20000,
-	symbol: 'ETH',
-	transactionHash: '0xabc'
+	"amount": 12000,
+	"symbol": "ETH",
+	"transactionHash": "0xabc"
 }
-startFlow(flowModel, inputs)
+// startFlow(flowModel, inputs)
+
+triggerApi(inputs)
+
+async function triggerApi(inputs) {
+	const axios = require('axios')
+
+  try {
+
+  	let res = await axios({
+		  method: "POST",
+		  url: "https://g3jv7taidg.execute-api.us-east-1.amazonaws.com/default/start-via-api-dev-start",
+		  data: inputs
+		});
+
+  	console.log(`Status: ${res.status}`)
+
+		// console.log(res)
+
+  } catch (e) {
+    console.error(e); // 💩
+	}	
+}
+
+
+
+
+
+
+
+
 
 

@@ -41,9 +41,13 @@ class Botani {
       startedAt: Date.now()
     })
 
-    console.log(`Task #${this.taskId + 1}: ${this.taskType}`)
+    console.log(`Task #${this.taskId}: ${this.taskType}`)
 
     return this
+  }
+
+  removeFutureTasks() {
+    this.flowModel = this.flowModel.splice(0, this.taskId);
   }
 
   async nextTask() {
@@ -76,14 +80,7 @@ class Botani {
   }
 
   async finishTask() {
-    if(this.params.nextTask == 'endFlow') {
-      this.flowModel[this.taskHistory.length] = {
-        task_type: this.params.nextTask
-      }
-      delete this.params.nextTask
-    }
-
-    console.log(`SUCCESS - Task #${this.taskHistory.length}`)
+    console.log(`SUCCESS - Task #${this.taskId}`)
     console.log(`--params ${JSON.stringify(this.params)}`)
     console.log(`--flowModel ${JSON.stringify(this.flowModel)}`)
     console.log(`--taskHistory ${JSON.stringify(this.taskHistory)}`)

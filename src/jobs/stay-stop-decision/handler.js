@@ -17,18 +17,12 @@ module.exports.start = async (event) => {
 
 	// Run rules and store the result
 	let result = await engine.run(facts)
-
-	console.log('--------')
-	console.log(JSON.stringify(botani.params))
-	console.log(JSON.stringify(result))
-
-	result.forEach(r => {
-		if(r["type"] == "success") {
-			Object.assign(botani.params, r.params);
-		} else {
-			Object.assign(botani.params, {nextTask: 'endFlow'});
-		}
-	})
-
+	let decision = result.length > 0
+	Object.assign(botani.params, {decision: decision});
+	if(!decision) {
+		botani.removeFutureTasks()
+	}
+	
+	
 	return await botani.finishTask()
 };

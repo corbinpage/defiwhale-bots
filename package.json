@@ -19,9 +19,11 @@
   "homepage": "https://github.com/corbinpage/botani#readme",
   "dependencies": {
     "aws-sdk": "^2.458.0",
+    "axios": "^0.18.0",
     "eth-dagger": "0.0.5",
     "ethers": "^4.0.27",
     "json-rules-engine": "^2.3.6",
+    "request": "^2.88.0",
     "twit": "^2.2.11"
   },
   "devDependencies": {

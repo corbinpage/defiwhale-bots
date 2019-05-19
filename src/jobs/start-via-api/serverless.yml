@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: send-tweet # NOTE: update this with your service name
+service: start-via-api # NOTE: update this with your service name
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
@@ -38,12 +38,12 @@ provider:
 #        Fn::Join:
 #          - ""
 #          - - "arn:aws:s3:::"
-#            -s "Ref" : "ServerlessDeploymentBucket"
+#            - "Ref" : "ServerlessDeploymentBucket"
 #            - "/*"
 
 # you can define service wide environment variables here
-  environment:
-
+#  environment:
+#    variable1: value1
 
 # you can add packaging information here
 #package:
@@ -59,12 +59,6 @@ functions:
     handler: handler.start
     layers:
       - {Ref: CommonLibsLambdaLayer}
-    events:
-      - sns: arn:aws:sns:us-east-1:061031305521:botani
-        topicName: botani
-        filterPolicy:
-          task_type:
-            - send-tweet
 
 layers:
   commonLibs:
