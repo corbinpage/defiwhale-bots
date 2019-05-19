@@ -1,5 +1,7 @@
 const Dagger = require("eth-dagger");
 const Botani = require("./src/lib/botani");
+const AWS = require('aws-sdk');
+AWS.config.update({region: 'us-east-1'});
 
 // connect to Dagger ETH main network (network id: 1) over web socket
 // const dagger = new Dagger("wss://mainnet.dagger.matic.network"); // dagger server
@@ -120,14 +122,71 @@ async function addToQueue(subject, message) {
 	    break;
 	  case 'startEthTransaction':
 	  	startEthTransaction(message)
-	    break;
+	    // break;
 	  default:
 	    console.log(`------------\nNo next step\nParams: ${JSON.stringify(message.params)}\nTask History: ${JSON.stringify(message.taskHistory)}`)
 	} 
 }
 
-addToQueue('startWhaleSpotting', { params: {amount: 1000}, taskHistory: [] })
+async function startFlow(flowModel, params) {
+	const sns = new AWS.SNS({apiVersion: '2010-03-31'})
+	const message = {
+		params: params,
+		flowModel: flowModel,
+		taskHistory: []
+	}
 
+	let snsParams = {
+	  Message: JSON.stringify(message),
+	  TopicArn: 'arn:aws:sns:us-east-1:061031305521:botani',
+	  MessageAttributes: {
+	    'task_type': {
+	      DataType: 'String',
+	      StringValue: message.flowModel[0]["task_type"]
+	    },
+	    'task_id': {
+	      DataType: 'Number',
+	      StringValue: '0'
+	    }
+    }
+	}
 
+	var res = await sns.publish(snsParams).promise()
+
+	return res
+}
+
+const flowModel = [
+	{
+		task_type: 'run-biz-rules',
+		inputs: {
+			rule: {
+				"conditions": {
+					"priority": 1,
+					"all": [
+						{ "operator": "greaterThanInclusive", "value": 10000, "fact": "amount" }
+					]
+				},
+				"priority": 1,
+				"event": {
+					"type": "success",
+					"success": true,
+					"addTask": [
+						{
+							task_type: 'run-biz-rules',
+							inputs: {
+								message: "Whale spotted!"
+							}
+						}
+					]
+				}
+			}
+		}
+	}
+]
+const inputs = {
+	amount: 1000
+}
+startFlow(flowModel, inputs)
 
 
