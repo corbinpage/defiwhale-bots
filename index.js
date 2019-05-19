@@ -1,5 +1,4 @@
 const Dagger = require("eth-dagger");
-const Botani = require("./src/lib/botani");
 const AWS = require('aws-sdk');
 AWS.config.update({region: 'us-east-1'});
 
@@ -19,32 +18,32 @@ AWS.config.update({region: 'us-east-1'});
 //   console.log("Current block number: ", result);
 // });
 
-async function startCdpUpdate(message) {
-	message = startTask('startCdpUpdate', message)
-	Object.assign(message.params, {risk: "High"});
+// async function startCdpUpdate(message) {
+// 	message = startTask('startCdpUpdate', message)
+// 	Object.assign(message.params, {risk: "High"});
 
-  finishTask('startBizRules', message)
-}
+//   finishTask('startBizRules', message)
+// }
 
-async function startWhaleSpotting(message) {
-	message = startTask('startWhaleSpotting', message)
-	Object.assign(message.params, {amount: 1000, aboveAmount: 500});
+// async function startWhaleSpotting(message) {
+// 	message = startTask('startWhaleSpotting', message)
+// 	Object.assign(message.params, {amount: 1000, aboveAmount: 500});
 
-  finishTask('startBizRules', message)
-}
+//   finishTask('startBizRules', message)
+// }
 
-async function startEthTransaction(message) {
+// async function startEthTransaction(message) {
 
-	message = startTask('startEthTransaction', message)
+// 	message = startTask('startEthTransaction', message)
 
-  finishTask('complete', message)
-}
+//   finishTask('complete', message)
+// }
 
-async function sendTweet(message) {
-	message = startTask(this.prototype.name, message)
+// async function sendTweet(message) {
+// 	message = startTask(this.prototype.name, message)
 
-  finishTask('complete', message)
-}
+//   finishTask('complete', message)
+// }
 
 // WhaleSpotting
 // "Monitor token transfers" => "if it's bigger than a certain amount" => "Tweet about it"
@@ -75,58 +74,58 @@ async function sendTweet(message) {
 
 // queue -> run business rules -> send OR save
 
-function startTask(subject, message) {
-	const order = message.taskHistory.length + 1
-	message.taskHistory.push({
-		subject: subject,
-		order: order,
-		startedAt: Date.now()
-	})
+// function startTask(subject, message) {
+// 	const order = message.taskHistory.length + 1
+// 	message.taskHistory.push({
+// 		subject: subject,
+// 		order: order,
+// 		startedAt: Date.now()
+// 	})
 
-	console.log(`Task #${order}: ${subject}`)
+// 	console.log(`Task #${order}: ${subject}`)
 
-	return message
-}
+// 	return message
+// }
 
-function finishTask(subject, message) {
-	// Save message and task history
+// function finishTask(subject, message) {
+// 	// Save message and task history
 
-	console.log(`Output: ${JSON.stringify(message)}`)
+// 	console.log(`Output: ${JSON.stringify(message)}`)
 
-	addToQueue(subject, message)
-}
+// 	addToQueue(subject, message)
+// }
 
-async function addToQueue(subject, message) {
-	switch(subject) {
-	  case 'startCdpUpdate':
-	  	startCdpUpdate(message)
-	  	break;
-	  case 'startWhaleSpotting':
-	  	startWhaleSpotting(message)
-	  	break;
-	  case 'startBizRules':
-	  	const bizRules = require("./src/run-biz-rules/handler");
+// async function addToQueue(subject, message) {
+// 	switch(subject) {
+// 	  case 'startCdpUpdate':
+// 	  	startCdpUpdate(message)
+// 	  	break;
+// 	  case 'startWhaleSpotting':
+// 	  	startWhaleSpotting(message)
+// 	  	break;
+// 	  case 'startBizRules':
+// 	  	const bizRules = require("./src/run-biz-rules/handler");
 
-	  	message = startTask('startBizRules', message)
-			let response = await bizRules.start(message);
+// 	  	message = startTask('startBizRules', message)
+// 			let response = await bizRules.start(message);
 
-			finishTask('sendTweet', JSON.parse(response.body).data)
-	    break;
-	  case 'sendTweet':
-	  	const sendTweet = require("./src/send-tweet/handler");
+// 			finishTask('sendTweet', JSON.parse(response.body).data)
+// 	    break;
+// 	  case 'sendTweet':
+// 	  	const sendTweet = require("./src/send-tweet/handler");
 
-	  	message = startTask('sendTweet', message)
-			let twitterResponse = await sendTweet.start(message);
+// 	  	message = startTask('sendTweet', message)
+// 			let twitterResponse = await sendTweet.start(message);
 
-			finishTask('complete', JSON.parse(twitterResponse.body).data)
-	    break;
-	  case 'startEthTransaction':
-	  	startEthTransaction(message)
-	    // break;
-	  default:
-	    console.log(`------------\nNo next step\nParams: ${JSON.stringify(message.params)}\nTask History: ${JSON.stringify(message.taskHistory)}`)
-	} 
-}
+// 			finishTask('complete', JSON.parse(twitterResponse.body).data)
+// 	    break;
+// 	  case 'startEthTransaction':
+// 	  	startEthTransaction(message)
+// 	    // break;
+// 	  default:
+// 	    console.log(`------------\nNo next step\nParams: ${JSON.stringify(message.params)}\nTask History: ${JSON.stringify(message.taskHistory)}`)
+// 	} 
+// }
 
 async function startFlow(flowModel, params) {
 	const sns = new AWS.SNS({apiVersion: '2010-03-31'})
@@ -164,28 +163,30 @@ const flowModel = [
 				"conditions": {
 					"priority": 1,
 					"all": [
-						{ "operator": "greaterThanInclusive", "value": 10000, "fact": "amount" }
+						{ "operator": "greaterThanInclusive", "value": 5000, "fact": "amount" }
 					]
 				},
 				"priority": 1,
 				"event": {
 					"type": "success",
-					"success": true,
-					"addTask": [
-						{
-							task_type: 'run-biz-rules',
-							inputs: {
-								message: "Whale spotted!"
-							}
-						}
-					]
+					"params": {
+						nextTask: "send-tweet"
+					}
 				}
 			}
+		}
+	},
+	{
+		task_type: 'send-tweet',
+		inputs: {
+			tweetMessage: 'Ahoy! {{amount}} {{symbol}} transfer spotted!\n\nhttps://etherscan.io/tx/{{transactionHash}}'
 		}
 	}
 ]
 const inputs = {
-	amount: 1000
+	amount: 20000,
+	symbol: 'ETH',
+	transactionHash: '0xabc'
 }
 startFlow(flowModel, inputs)
 
