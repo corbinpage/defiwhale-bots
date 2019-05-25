@@ -1,6 +1,5 @@
 'use strict';
 const AWS = require('aws-sdk');
-AWS.config.update({region: 'us-east-1'});
 
 class Botani {
   // taskEnums = Object.freeze({
@@ -10,17 +9,32 @@ class Botani {
 
 
   constructor(obj, options={trigger: "Sns"}) {
+    this.configureAWS()
     const sns = obj["Records"][0]["Sns"]
     // console.log(sns)
     const taskType = sns["MessageAttributes"]["task_type"]["Value"]
     const taskId = sns["MessageAttributes"]["task_id"]["Value"]
-    const message = JSON.parse(sns["Message"])
+
+    const message = JSON.parse(JSON.stringify(sns["Message"]))
+
+    console.log(message)
+    console.log(message.params)
 
     this.params = message.params;
     this.flowModel = message.flowModel;
     this.taskHistory = message.taskHistory;
     this.taskType = taskType;
     this.taskId = taskId;
+  }
+
+  configureAWS() {
+    AWS.config.update({region: 'us-east-1'});
+    const useLocal = process.env.NODE_ENV !== 'production'
+    const snsClient = new AWS.SNS({
+      apiVersion: '2010-03-31',
+      endpoint: useLocal ? 'http://localhost:4575' : undefined,
+    })
+    this.sns = snsClient
   }
 
   toJSON() {
@@ -51,7 +65,6 @@ class Botani {
   }
 
   async nextTask() {
-    const sns = new AWS.SNS({apiVersion: '2010-03-31'})
     let params = {
       Message: this.toJSON(),
       TopicArn: 'arn:aws:sns:us-east-1:061031305521:botani',
@@ -73,7 +86,7 @@ class Botani {
       params.MessageAttributes["task_type"]["StringValue"] = this.flowModel[this.taskHistory.length]['task_type']
     }
 
-    var res = await sns.publish(params).promise()
+    var res = await this.sns.publish(params).promise()
     // console.log(res)
 
     return res

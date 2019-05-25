@@ -21,7 +21,7 @@ module.exports.start = async (event) => {
 	let message = createMessage(botani.flowModel[botani.taskId]["inputs"]["tweetMessage"], botani.params)
 
 	console.log(message)
-	// let response = await T.post('statuses/update', { status: message })
+	let response = await T.post('statuses/update', { status: message })
 	Object.assign(botani.params, {tweetSent: true, tweetMessage: message});
 
 	return await botani.finishTask()

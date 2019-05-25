@@ -1,10 +1,13 @@
 'use strict';
-const Botani = require('/opt/nodejs/botani')
+const Botani = require('./layer/nodejs/botani')
 const Engine = require('json-rules-engine').Engine
 const Rule = require('json-rules-engine').Rule
 
 module.exports.start = async (event) => {
-	const botani = new Botani(event, {trigger: "Sns"})
+	const botani = new Botani(event, {
+		trigger: "Sns",
+		topicARN: process.env.NODE_ENV == 'prod' ? '' : ''
+	})
 	botani.startTask()
 
 	//Initialize rules engine

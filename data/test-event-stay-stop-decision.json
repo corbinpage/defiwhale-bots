@@ -1,0 +1,44 @@
+{
+	"Records": [
+		{
+			"Sns": {
+				"Message": {
+					"flowModel": [
+						{
+	      			"task_type": "stay-stop-decision",
+				      "inputs": {
+				        "rule": {
+				          "conditions": {
+				            "priority": 1,
+				            "all": [
+				              { "operator": "greaterThanInclusive", "value": 10000, "fact": "amount" }
+				            ]
+				          },
+				          "priority": 1,
+				          "event": {
+				            "type": "success",
+				            "params": {
+				              "decision": true
+				            }
+				          }
+				        }
+				      }
+						}
+					],
+					"taskHistory": [],
+					"params": {
+						"amount": 8000
+					}
+				},
+				"MessageAttributes": {
+					"task_type": {
+						"Value": "stay-stop-decision"
+					},
+					"task_id": {
+						"Value": 0
+					}
+				}
+			}
+		}
+	]
+}

@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "localstack": "docker-compose up -d;aws --endpoint-url=http://localhost:4575 sns create-topic --name botani",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -27,6 +28,7 @@
     "twit": "^2.2.11"
   },
   "devDependencies": {
-    "dotenv": "^8.0.0"
+    "dotenv": "^8.0.0",
+    "serverless-localstack": "^0.4.15"
   }
 }

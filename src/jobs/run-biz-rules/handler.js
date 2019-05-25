@@ -18,10 +18,6 @@ module.exports.start = async (event) => {
 	// Run rules and store the result
 	let result = await engine.run(facts)
 
-	console.log('--------')
-	console.log(JSON.stringify(botani.params))
-	console.log(JSON.stringify(result))
-
 	result.forEach(r => {
 		if(r["type"] == "success") {
 			Object.assign(botani.params, r.params);
