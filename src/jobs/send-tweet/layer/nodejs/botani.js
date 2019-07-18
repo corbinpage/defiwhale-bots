@@ -11,20 +11,16 @@ class Botani {
   constructor(obj, options={trigger: "Sns"}) {
     this.configureAWS()
     const sns = obj["Records"][0]["Sns"]
-    // console.log(sns)
-    const taskType = sns["MessageAttributes"]["task_type"]["Value"]
-    const taskId = sns["MessageAttributes"]["task_id"]["Value"]
+    console.log(sns)
+    console.log(typeof sns)
 
-    const message = JSON.parse(JSON.stringify(sns["Message"]))
-
-    console.log(message)
-    console.log(message.params)
+    const message = JSON.parse(sns["Message"])
 
     this.params = message.params;
     this.flowModel = message.flowModel;
     this.taskHistory = message.taskHistory;
-    this.taskType = taskType;
-    this.taskId = taskId;
+    this.taskType = '';
+    this.taskId = 0;
   }
 
   configureAWS() {
