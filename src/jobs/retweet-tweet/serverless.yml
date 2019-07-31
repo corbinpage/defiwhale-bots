@@ -64,7 +64,7 @@ functions:
       - {Ref: CommonLibsLambdaLayer}
     events:
       - sns: arn:aws:sns:us-east-1:061031305521:botani
-        topicName: botani
+        topicName: retweet-tweet
         filterPolicy:
           task_type:
             - retweet-tweet
