@@ -2,6 +2,7 @@
 
 const uuid = require('uuid');
 const AWS = require('aws-sdk');
+AWS.config.update({region: 'us-east-1'});
 const axios = require('axios');
 
 async function getPrices(currencies) {
@@ -24,7 +25,6 @@ async function getPrices(currencies) {
 		  params: params
 		})
 
-    console.log(response);
     return response
   } catch (error) {
     console.error(error);
@@ -49,78 +49,36 @@ function formatParams(response) {
   return params
 }
 
-function putPrices(params) {
+async function putPrices(params) {
 	const dynamoDb = new AWS.DynamoDB.DocumentClient();
 
-  // write the prices to the database
-  dynamoDb.put(params, (error) => {
-    // handle potential errors
-    if (error) {
-      console.error(error);
-      callback(null, {
-        statusCode: error.statusCode || 501,
-        headers: { 'Content-Type': 'text/plain' },
-        body: 'Couldn\'t create the todo item.',
-      });
-      return;
-    }
+	try {
+    const response = await dynamoDb.put(params).promise();
 
-    // create a response
-    const response = {
-      statusCode: 200,
-      body: JSON.stringify(params.Item.data),
-    };
-    callback(null, response);
-  });
+    return response
+  } catch (error) {
+    console.error(error);
+    return {error}
+  }
 };
 
 module.exports.start = async (event) => {
 	let response = await getPrices("BTC,ETH,DAI,MKR,USDC")
 	let params = formatParams(response)
-	let updateResponse = putPrices(params)
+	console.log(params)
+	
+	let updateResponse = await putPrices(params)
+	console.log(updateResponse)
 
 	return updateResponse
 };
 
-// async function yo() {
+// async function test() {
 // 	let response = await getPrices("BTC,ETH,DAI,MKR,USDC")
 // 	let params = formatParams(response)
 // 	console.log(params)
+// 	let updateResponse = await putPrices(params)
 // }
 
-// yo()
-
-
-// function getPrices(params) {
-// 	const dynamoDb = new AWS.DynamoDB.DocumentClient();
-
-// module.exports.get = (event, context, callback) => {
-//   const params = {
-//     TableName: process.env.DYNAMODB_TABLE,
-//     Key: {
-//       id: event.pathParameters.id,
-//     },
-//   };
-
-//   // fetch todo from the database
-//   dynamoDb.get(params, (error, result) => {
-//     // handle potential errors
-//     if (error) {
-//       console.error(error);
-//       callback(null, {
-//         statusCode: error.statusCode || 501,
-//         headers: { 'Content-Type': 'text/plain' },
-//         body: 'Couldn\'t fetch the todo item.',
-//       });
-//       return;
-//     }
-
-//     // create a response
-//     const response = {
-//       statusCode: 200,
-//       body: JSON.stringify(result.Item),
-//     };
-//     callback(null, response);
-//   });
-// };
+// test()
 
