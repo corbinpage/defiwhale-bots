@@ -5,10 +5,15 @@ const AWS = require('aws-sdk');
 AWS.config.update({region: 'us-east-1'});
 const axios = require('axios');
 
-async function getPrices(currencies) {
+async function getCMCPrices(currencies) {
 	const base = 'https://pro-api.coinmarketcap.com/'
 	const version = 'v1'
 	const path = '/cryptocurrency/quotes/latest'
+
+	let headers = {
+  	'Accept': 'application/json',
+  	'X-CMC_PRO_API_KEY': process.env.X_CMC_PRO_API_KEY
+  }
 
 	let params = {
 		symbol: currencies
@@ -18,10 +23,7 @@ async function getPrices(currencies) {
     const response = await axios({
 		  method: 'get',
 		  url: `${base}${version}${path}`,
-		  headers: {
-		  	'Accept': 'application/json',
-		  	'X-CMC_PRO_API_KEY': process.env.X_CMC_PRO_API_KEY
-		  },
+		  headers: headers,
 		  params: params
 		})
 
@@ -30,6 +32,24 @@ async function getPrices(currencies) {
     console.error(error);
     return {}
   }
+}
+
+async function getPrices(limit=10) {
+	const dynamoDb = new AWS.DynamoDB.DocumentClient();
+
+  const params = {
+    TableName: process.env.DYNAMODB_TABLE,
+    Limit: limit
+  }
+
+  try {
+    const response = await dynamoDb.scan(params).promise()
+
+		return response.Items
+	} catch (error) {
+	  console.error(error);
+	  return error
+	}
 }
 
 function formatParams(response) {
@@ -63,10 +83,10 @@ async function putPrices(params) {
 };
 
 module.exports.start = async (event) => {
-	let response = await getPrices("BTC,ETH,DAI,MKR,USDC")
+	let response = await getCMCPrices("BTC,ETH,DAI,MKR,USDC")
 	let params = formatParams(response)
 	console.log(params)
-	
+
 	let updateResponse = await putPrices(params)
 	console.log(updateResponse)
 
@@ -74,10 +94,12 @@ module.exports.start = async (event) => {
 };
 
 // async function test() {
-// 	let response = await getPrices("BTC,ETH,DAI,MKR,USDC")
-// 	let params = formatParams(response)
-// 	console.log(params)
-// 	let updateResponse = await putPrices(params)
+// 	let response = await getPrices()
+// 	console.log(response)
+// 	console.log(response[0]['data']['MKR']['quote']['USD']['price'])
+// 	// let params = formatParams(response)
+// 	// console.log(params)
+// 	// let updateResponse = await putPrices(params)
 // }
 
 // test()
