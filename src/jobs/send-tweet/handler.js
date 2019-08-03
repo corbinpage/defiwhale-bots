@@ -26,7 +26,7 @@ module.exports.start = async (event) => {
 	let confirmSendMessage = false
 	let message = ''
 
-	if(botani.params.tokenSymbol === 'DAI' && botani.params.amount >= 50000) {
+	if(botani.params.tokenSymbol === 'DAI' && botani.params.amount >= 100000) {
 		confirmSendMessage = true
 	} else if(botani.params.tokenSymbol === 'USDC' && botani.params.amount >= 50000) {
 		confirmSendMessage = true
