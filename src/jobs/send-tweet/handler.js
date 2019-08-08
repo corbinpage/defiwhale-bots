@@ -102,7 +102,7 @@ module.exports.start = async (event) => {
 		console.log('Preparing the tweet...')
 		console.log(message)
 
-		let response = await sendsTweet(message)
+		let response = await sendTweet(message)
 	}
 
 	Object.assign(params, {tweetSent: confirmSendMessage, tweetMessage: message});
