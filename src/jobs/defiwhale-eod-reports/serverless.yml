@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: send-tweet # NOTE: update this with your service name
+service: defiwhale-eod-reports # NOTE: update this with your service name
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
@@ -42,8 +42,19 @@ provider:
 #            - "/*"
 
 # you can define service wide environment variables here
-  environment:
-
+  environment: 
+    ALETHIO_API_KEY: 'main_ukvahumjgnmoedfvzkr2qxwvozmlyk4p'
+    DYNAMODB_TABLE: 'DEFIWHALE_EOD_REPORTS'
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:us-east-1:061031305521:table/DEFIWHALE_EOD_REPORTS"
 
 # you can add packaging information here
 #package:
@@ -60,11 +71,8 @@ functions:
     layers:
       - {Ref: CommonLibsLambdaLayer}
     events:
-      - sns: arn:aws:sns:us-east-1:061031305521:botani
-        topicName: botani
-        filterPolicy:
-          task_type:
-            - send-tweet
+      # Invoke Lambda function every minute
+      - schedule: rate(1 day)
 
 layers:
   commonLibs:

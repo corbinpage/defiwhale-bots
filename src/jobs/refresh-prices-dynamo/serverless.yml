@@ -43,7 +43,7 @@ provider:
 
 # you can define service wide environment variables here
   environment: 
-    X_CMC_PRO_API_KEY: ''
+    X_CMC_PRO_API_KEY: '87fd8e9c-83d5-4cee-8dba-98adc071604e'
     DYNAMODB_TABLE: 'BOTANI_PRICES'
   iamRoleStatements:
     - Effect: Allow

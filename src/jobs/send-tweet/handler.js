@@ -1,13 +1,23 @@
 'use strict';
-const Botani = require('/opt/nodejs/botani')
-const Twit = require("twit");
-const Mustache = require("mustache");
+
+const { getMessageFromSNS } = require('./utils');
+
+const Twit = require('twit');
+const Mustache = require('mustache');
 const AWS = require('aws-sdk');
 AWS.config.update({region: 'us-east-1'});
 
 function createMessage(params) {
-	const tweet =  'Ahoy! {{amount}} {{tokenSymbol}} (${{amountUsd}}) transfer spotted!\n\nhttps://etherscan.io/tx/{{transactionHash}}'
-	params.amount = params.amount.toLocaleString()
+	var usNumberFormatter = new Intl.NumberFormat('en-US');
+	var usdformatter = new Intl.NumberFormat('en-US', {
+	  style: 'currency',
+	  currency: 'USD',
+	});
+
+	const tweet =  'Ahoy! {{amount}} {{tokenSymbol}} ({{amountUsd}}) transfer spotted!\n\nhttps://etherscan.io/tx/{{transactionHash}}'
+	params.amount = usNumberFormatter.format(params.amount.toFixed(2))
+	params.amountUsd = usdformatter.format(params.amountUsd)
+
 	return Mustache.render(tweet, params);
 }
 
@@ -58,55 +68,51 @@ function isImportantTransfer(params) {
 	let confirmSendMessage = false
 
 	// Based on USD amoount transferred
-	// if(tokenSymbol === 'DAI' && amountUsd >= 100000) {
-	if(params.tokenSymbol === 'DAI' && params.amountUsd >= 1) {
+	if(params.tokenSymbol === 'DAI' && params.amountUsd >= 100000) {
 		confirmSendMessage = true
-	} else if(params.tokenSymbol === 'USDC' && params.amountUsd >= 50000) {
+	} else if(params.tokenSymbol === 'USDC' && params.amountUsd >= 40000) {
 		confirmSendMessage = true
 	} else if(params.tokenSymbol === 'MKR' && params.amountUsd >= 20000) {
 		confirmSendMessage = true
 	}
-
-	// Based on tokens transferred
-	// if(params.tokenSymbol === 'DAI' && params.amount >= 100000) {
-	// 	confirmSendMessage = true
-	// } else if(params.tokenSymbol === 'USDC' && params.amount >= 50000) {
-	// 	confirmSendMessage = true
-	// } else if(params.tokenSymbol === 'MKR' && params.amount >= 20) {
-	// 	confirmSendMessage = true
-	// }
-
-	console.log(`${params.amount} ${params.tokenSymbol} @ $${params.price} USD/${params.tokenSymbol}`)
-	console.log(`Total $${params.amountUsd} - ${confirmSendMessage ? 'Send Tweet' : 'No Tweet'}`)
 
 	return confirmSendMessage
 }
 
 
 module.exports.start = async (event) => {
-	const botani = new Botani(event, {trigger: "Sns"})
-	// botani.startTask()
 	let confirmSendMessage = false
 	let message = ''
 
-	botani['params']['price'] = await getPriceFromSymbol(
-		botani['params']['tokenSymbol']
+	let params = getMessageFromSNS(event).params
+	params.price = await getPriceFromSymbol(
+		params.tokenSymbol
 	)
-	botani['params']['amountUsd'] = botani['params']['price'] * botani['params']['amount']
-	botani['params']['amountUsd'] = botani['params']['amountUsd'].toFixed(2)
+	params.amountUsd = params.price * params.amount
 
-	confirmSendMessage = isImportantTransfer(botani.params)
+	confirmSendMessage = isImportantTransfer(params)
 
 	if(confirmSendMessage) {
-		console.log('Preparing the tweet...')
 		message = createMessage(
-			botani.params
+			params
 		)
+
+		console.log(`${params.amount} ${params.tokenSymbol} @ $${params.price} USD/${params.tokenSymbol}`)
+		console.log(`Total ${params.amountUsd} - ${confirmSendMessage ? 'Send Tweet' : 'No Tweet'}`)
+		console.log('Preparing the tweet...')
 		console.log(message)
-		// let response = await sendTweet(message)
+
+		let response = await sendsTweet(message)
 	}
 
-	Object.assign(botani.params, {tweetSent: confirmSendMessage, tweetMessage: message});
+	Object.assign(params, {tweetSent: confirmSendMessage, tweetMessage: message});
 
-	return botani
+	return params
 };
+
+
+
+// Test
+// serverless invoke local -f start --data '{ "Records": [ {"Sns": { "Message": { "params": { "amount": 100000000.111, "tokenSymbol": "DAI", "transactionHash": "0xaaf556bc547d7e7ff9e70c0fbb1b787929445fd9c7aa09298c7f30af7c1f8bc8" }, "flowModel": [ { "taskType": "whale-token-transfer-tweet", "inputs": [] } ], "taskHistory": [] } } } ] }'
+
+

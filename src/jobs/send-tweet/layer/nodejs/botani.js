@@ -11,8 +11,6 @@ class Botani {
   constructor(obj, options={trigger: "Sns"}) {
     this.configureAWS()
     const sns = obj["Records"][0]["Sns"]
-    console.log(sns)
-    console.log(typeof sns)
 
     const message = JSON.parse(sns["Message"])
 
@@ -51,7 +49,7 @@ class Botani {
       startedAt: Date.now()
     })
 
-    console.log(`Task #${this.taskId}: ${this.taskType}`)
+    // console.log(`Task #${this.taskId}: ${this.taskType}`)
 
     return this
   }
