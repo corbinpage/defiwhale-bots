@@ -1,16 +1,20 @@
 'use strict';
 
-// const uuid = require('uuid');
-// const AWS = require('aws-sdk');
-// AWS.config.update({region: 'us-east-1'});
 const axios = require('axios')
-// const Mustache = require('mustache')
+const {
+  adjustTokenAmount,
+  getPriceFromSymbol,
+  getAddressForSymbol,
+  formatAmount,
+  sendTweetMessage } = require('./utils');
 
-async function getTokenTransfersFromAlethio(tokenAddress, url='') {
+async function getTokenTransfersFromAlethio(tokenAddress, inputUrl='') {
 	const base = 'https://api.aleth.io/'
 	const version = 'v1'
   const limit = '100'
-	const path = url ? url : `/tokens/${tokenAddress}/tokenTransfers?page[limit]=${limit}`
+	const path = `/tokens/${tokenAddress}/tokenTransfers?page[limit]=${limit}`
+  const url = inputUrl ? encodeURI(inputUrl) : `${base}${version}${path}`
+
 
   const auth = {
     username: process.env.ALETHIO_API_KEY,
@@ -27,14 +31,14 @@ async function getTokenTransfersFromAlethio(tokenAddress, url='') {
     const response = await axios({
 		  method: 'get',
       auth: auth,
-		  url: `${base}${version}${path}`,
+		  url: url,
 		  headers: headers,
 		  params: params
 		})
 
-    console.log(response)
-    console.log('-------')
-    console.log(response.data)
+    // console.log(response)
+    // console.log('-------')
+    // console.log(response.data)
 
     return response.data
   } catch (error) {
@@ -43,234 +47,121 @@ async function getTokenTransfersFromAlethio(tokenAddress, url='') {
   }
 }
 
-async function aggregateTransfers(tokenAddress, startTime, endTime) {
+async function calculate24hrTransferReport(tokenTransferSet) {
+  let price = await getPriceFromSymbol(
+    tokenTransferSet[0]['attributes']['symbol']
+  )
   let report = {
-    keepQuerying: true,
-    queryNumber: 0,
-    nextUrl: null,
-    dailyMetrics: {
-      'DAI': {
-        tokenSymbol: 'DAI',
-        numberOfTransfers: 10000,
-        amount: 10000,
-        unadjustedAmount: 100
-      }
-    },
-    transactions: []
+    numberOfTransactions: 0,
+    amount: 0,
+    amountUsd: 0,
+    price: price,
+    tokenSymbol: tokenTransferSet[0]['attributes']['symbol']
   }
 
-  let 
+  let lastBlockTime = tokenTransferSet[0]['attributes']['blockCreationTime']
+  let firstBlock = tokenTransferSet[tokenTransferSet.length - 1]
+  let firstBlockTime = firstBlock['attributes']['blockCreationTime']
 
-  while(report.keepQuerying) {
-    let batch = await getTokenTransfersFromAlethio(MKRAddress, nextUrl)
+  // console.log(`Length: ${tokenTransferSet.length} -- Start: ${firstBlockTime} -- End: ${lastBlockTime}`)
 
-    report = processTokenTransferBatch(report, batch, endTime)
-  }
+  tokenTransferSet.forEach((t, i) => {
+    let value = t['attributes']['value']
+    let decimals = t['attributes']['decimals']
+    const amount = adjustTokenAmount(value, decimals)
 
-  // Write report to DynamoDB
+    report.numberOfTransactions++
+    report.amount = report.amount + amount
+    report.amountUsd = report.amount * report.price
+  })
 
-  report["dailyMetrics"][tokenAddress][amount] = t["data"][0]["attributes"]["value"]
-
-  // Loop
-    // Query for transactions
-    // Loop
-      // checkTransaction()
-      // Store in report
-
-
-    // End
-    // Query batch
-    // Process batch
-  // End
   return report
 }
 
-async function processTokenTransferBatch(report, batch, startTime, endTime) {
-  let batchEarliestBlockCreationTime = 10000
+function createMessage(reportData, currencies=['DAI', 'MKR', 'USDC']) {
+  let message = '🏄‍♂️🤙 24hr Stablecoin Report:\n\n'
+  currencies.forEach((c, i) => {
+    let _ = reportData[c]
+    let nextText = `$${_.tokenSymbol}: ${formatAmount(_.amountUsd, true)}` +
+      ` moved via ${formatAmount(_.numberOfTransactions)} txs\n`
 
-  batch.data.forEach((t, i) => {
-
-
-
+    message += nextText
   })
 
-    keepQuerying: true,
-    queryNumber: 0,
-    nextUrl: null,
+  message += `\n#DeFi`
 
+  return message
+}
 
+async function queryFor24hrTransfersTransactions(tokenSymbol) {
+  const tokenAddress = getAddressForSymbol(tokenSymbol)
 
-  if(t.attributes.blockCreationTime < startTime) {
-    report.keepQuerying = false
-    report.nextUrl = null
+  let tokenTransferSet = await getTokenTransfersFromAlethio(tokenAddress)
 
-  } else if(t.attributes.blockCreationTime > endTime) {
+  let endTime = tokenTransferSet.data[0]['attributes']['blockCreationTime']
+  const secondsPerDay = 60 * 60 * 24
+  let startTime = endTime - secondsPerDay
+  
+  let transactions = tokenTransferSet.data
+  let nextUrl = tokenTransferSet.links.next
+  let keepQuerying = true
 
-  } else {
-    report.dailyMetrics['DAI']['numberOfTransfers']++
-    report.dailyMetrics['DAI']['unadjustedAmount'] = 
-      report.dailyMetrics['DAI']['unadjustedAmount'] + 
+  while(keepQuerying) {
+    let batch = await getTokenTransfersFromAlethio(tokenAddress, nextUrl)
 
-    tokenSymbol: 'DAI',
-    numberOfTransfers: 10000,
-    amount: 10000,
-    unadjustedAmount: 100
-  }
+    if(!batch.data) {
+      console.log('Break')
+      keepQuerying = false
+      break
+    } else {
 
+      let lastTransaction = batch.data[batch.meta.count - 1]
 
-    dailyMetrics: {
-      'DAI': {
-        tokenSymbol: 'DAI',
-        numberOfTransfers: 10000,
-        amount: 10000,
-        unadjustedAmount: 100
+      if(lastTransaction['attributes']['blockCreationTime'] < startTime ) {
+        keepQuerying = false
+
+        batch.data.forEach((d, i) => {
+          if(d['attributes']['blockCreationTime'] >= startTime ) {
+            transactions.push(d)
+          }
+        })
+      } else {
+        transactions = transactions.concat(batch.data)
+        nextUrl = batch.links.next
       }
+    }
 
-  batch.data
-  batch.links
-  batch.meta
-
-
-
-}
-
-async function get24HRValues(tokenAddress) {
-  // Get time range - unix to unix
-
-  // let reportData = await aggregateTransfers(tokenAddress, startTime, endTime)
-
-  // Save report
-
-
-
-  // queryAllTransactions
-  // read transactions
-  // calculate24hrTransferReport()
-
-  return {
-    numberOfTransactions: 10000,
-    amount: 100000,
-    tokenSymbol: 'DAI'
   }
+
+  // Write report to DynamoDB
+  // report["dailyMetrics"][tokenAddress][amount] = t["data"][0]["attributes"]["value"]
+
+  return transactions 
 }
 
-// function createMessage(params) {
-//   params.numberOfTransactions = params.numberOfTransactions.toLocaleString()
-//   params.amount = params.amount.toLocaleString()
 
-//   let tweet = "📆 24 Hour {{tokenSymbol}} Summary:\n\n🔁 Total # of transfers: {{numberOfTransactions}}\n💸 Total Amount: {{amount}}"
+module.exports.start = async (event) => {
+  // const currencies = ['DAI', 'MKR', 'USDC', 'TUSD', 'GUSD', 'USDT', 'PAX']
+  const currencies = ['DAI', 'USDC', 'USDT', 'PAX', 'TUSD']
+  let allReports = {}
+  let index
 
-//   return Mustache.render(tweet, params)
-// }
+  for(index in currencies) {
+    let transferSet = await queryFor24hrTransfersTransactions(currencies[index])
+    let reportData = await calculate24hrTransferReport(transferSet)
+    
+    console.log(reportData)
+    console.log('-----')
 
-// async function sendTweet(tweet) {
-//   var T = new Twit({
-//     consumer_key: process.env.TWITTER_CONSUMER_KEY,
-//     consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
-//     access_token: process.env.TWITTER_ACCESS_TOKEN,
-//     access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
-//   })
+    allReports[currencies[index]] = reportData
+  }
 
-//   return T.post('statuses/update', { status: tweet })
-// }
+  let tweet = createMessage(allReports, currencies)
 
+  console.log(tweet)
 
-// module.exports.start = async (event) => {
-  async function start() {
-  const MKRAddress = '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2'
-
-  let tokenTransferSet = await getTokenTransfersFromAlethio(MKRAddress)
-  console.log(tokenTransferSet)
-
-  // let reportData = await get24HRValues(MKRAddress)
-  // console.log(reportData)
-
-  // let tweet = createMessage(reportData)
-  // let response = await sendTweet(tweet)
-
-  // console.log(tweet)
+  // let response = await sendTweetMessage(message: tweet)
 
   // return response
 }
-
-// test()
-
-// const DAIAddress = '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359'
-// const MKRAddress = '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2'
-// const USDCAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
-// const GNTAddress = '0xa74476443119a942de498590fe1f2454d7d4ac0d'
-
-// getTokenTransfers(DAIAddress)
-
-start()
-
-// async function getPrices(limit=10) {
-// 	const dynamoDb = new AWS.DynamoDB.DocumentClient()
-
-//   const params = {
-//     TableName: process.env.DYNAMODB_TABLE,
-//     Limit: limit
-//   }
-
-//   try {
-//     const response = await dynamoDb.scan(params).promise()
-
-// 		return response.Items
-// 	} catch (error) {
-// 	  console.error(error)
-// 	  return error
-// 	}
-// }
-
-// function formatParams(response) {
-//   const timestamp = new Date().getTime()
-
-//   const params = {
-//     TableName: process.env.DYNAMODB_TABLE,
-//     Item: {
-//       id: uuid.v1(),
-//       status: response.data.status,
-//       data: response.data.data,
-//       createdAt: timestamp,
-//       updatedAt: timestamp,
-//     },
-//   }
-
-//   return params
-// }
-
-// async function putPrices(params) {
-// 	const dynamoDb = new AWS.DynamoDB.DocumentClient()
-
-// 	try {
-//     const response = await dynamoDb.put(params).promise()
-
-//     return response
-//   } catch (error) {
-//     console.error(error)
-//     return {error}
-//   }
-// };
-
-// module.exports.start = async (event) => {
-	// let response = await getCMCPrices("BTC,ETH,DAI,MKR,USDC")
-	// let params = formatParams(response)
-	// console.log(params)
-
-	// let updateResponse = await putPrices(params)
-	// console.log(updateResponse)
-
-	// return updateResponse
-// };
-
-// async function test() {
-// 	let response = await getPrices()
-// 	console.log(response)
-// 	console.log(response[0]['data']['MKR']['quote']['USD']['price'])
-// 	// let params = formatParams(response)
-// 	// console.log(params)
-// 	// let updateResponse = await putPrices(params)
-// }
-
-
 

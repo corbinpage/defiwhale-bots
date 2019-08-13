@@ -72,7 +72,8 @@ functions:
       - {Ref: CommonLibsLambdaLayer}
     events:
       # Invoke Lambda function every minute
-      - schedule: rate(1 day)
+      # - schedule: cron(15 23 * * ? *)
+      - schedule: rate(20 minutes)
 
 layers:
   commonLibs:

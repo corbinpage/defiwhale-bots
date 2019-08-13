@@ -83,24 +83,13 @@ async function putPrices(params) {
 };
 
 module.exports.start = async (event) => {
-	let response = await getCMCPrices("BTC,ETH,DAI,MKR,USDC")
+  const currencies = ['BTC', 'ETH', 'DAI', 'MKR', 'USDC', 'TUSD', 'GUSD', 'USDT', 'PAX']
+	let response = await getCMCPrices(currencies.join(','))
 	let params = formatParams(response)
-	console.log(params)
+	// console.log(params)
 
 	let updateResponse = await putPrices(params)
-	console.log(updateResponse)
+	// console.log(updateResponse)
 
 	return updateResponse
 };
-
-// async function test() {
-// 	let response = await getPrices()
-// 	console.log(response)
-// 	console.log(response[0]['data']['MKR']['quote']['USD']['price'])
-// 	// let params = formatParams(response)
-// 	// console.log(params)
-// 	// let updateResponse = await putPrices(params)
-// }
-
-// test()
-
