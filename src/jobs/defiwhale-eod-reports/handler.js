@@ -1,6 +1,9 @@
 'use strict';
 
 const axios = require('axios')
+const uuid = require('uuid');
+const AWS = require('aws-sdk');
+AWS.config.update({region: 'us-east-1'});
 const {
   adjustTokenAmount,
   getPriceFromSymbol,
@@ -51,39 +54,52 @@ async function calculate24hrTransferReport(tokenTransferSet) {
   let price = await getPriceFromSymbol(
     tokenTransferSet[0]['attributes']['symbol']
   )
+  
+  let firstBlock = tokenTransferSet[tokenTransferSet.length - 1]
   let report = {
     numberOfTransactions: 0,
     amount: 0,
     amountUsd: 0,
     price: price,
-    tokenSymbol: tokenTransferSet[0]['attributes']['symbol']
+    tokenSymbol: tokenTransferSet[0]['attributes']['symbol'],
+    firstBlockTime: firstBlock['attributes']['blockCreationTime'],
+    lastBlockTime: tokenTransferSet[0]['attributes']['blockCreationTime']
   }
-
-  let lastBlockTime = tokenTransferSet[0]['attributes']['blockCreationTime']
-  let firstBlock = tokenTransferSet[tokenTransferSet.length - 1]
-  let firstBlockTime = firstBlock['attributes']['blockCreationTime']
-
-  // console.log(`Length: ${tokenTransferSet.length} -- Start: ${firstBlockTime} -- End: ${lastBlockTime}`)
 
   tokenTransferSet.forEach((t, i) => {
     let value = t['attributes']['value']
     let decimals = t['attributes']['decimals']
     const amount = adjustTokenAmount(value, decimals)
 
+    tokenTransferSet[i]['attributes']['adjustedAmount'] = amount
+    tokenTransferSet[i]['attributes']['amountUsd'] = amount * report.price
+
     report.numberOfTransactions++
     report.amount = report.amount + amount
     report.amountUsd = report.amount * report.price
   })
 
+  tokenTransferSet.sort((a, b) => {
+    return b['attributes']['amountUsd'] - a['attributes']['amountUsd']
+  })
+
+  report['highest'] = tokenTransferSet[0]
+  report['smallest'] = tokenTransferSet[tokenTransferSet.length - 1]
+  report['top10'] = tokenTransferSet[9]
+  report['median'] = tokenTransferSet[Math.round(tokenTransferSet.length / 2)]
+
   return report
 }
 
-function createMessage(reportData, currencies=['DAI', 'MKR', 'USDC']) {
-  let message = '🏄‍♂️🤙 24hr Stablecoin Report:\n\n'
+function createMessageForStablecoinReport(reportData, currencies=['DAI', 'MKR', 'USDC']) {
+  let usdformatter = new Intl.NumberFormat('en-US', {
+    maximumFractionDigits: 0
+  });
+  let message = '🏄‍♂️🤙 24hr Stablecoin Transfer Report:\n\n'
   currencies.forEach((c, i) => {
     let _ = reportData[c]
-    let nextText = `$${_.tokenSymbol}: ${formatAmount(_.amountUsd, true)}` +
-      ` moved via ${formatAmount(_.numberOfTransactions)} txs\n`
+    let nextText = `$${_.tokenSymbol}: $${usdformatter.format(_.amountUsd)}` +
+      ` via ${formatAmount(_.numberOfTransactions)} txs\n`
 
     message += nextText
   })
@@ -92,6 +108,30 @@ function createMessage(reportData, currencies=['DAI', 'MKR', 'USDC']) {
 
   return message
 }
+
+async function putReport(params) {
+  const dynamoDb = new AWS.DynamoDB.DocumentClient();
+  const timestamp = new Date().getTime();
+
+  const record = {
+    TableName: process.env.DYNAMODB_TABLE,
+    Item: {
+      id: uuid.v1(),
+      data: params,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    },
+  }
+
+  try {
+    const response = await dynamoDb.put(record).promise();
+
+    return response
+  } catch (error) {
+    console.error(error);
+    return {error}
+  }
+};
 
 async function queryFor24hrTransfersTransactions(tokenSymbol) {
   const tokenAddress = getAddressForSymbol(tokenSymbol)
@@ -133,16 +173,24 @@ async function queryFor24hrTransfersTransactions(tokenSymbol) {
 
   }
 
-  // Write report to DynamoDB
-  // report["dailyMetrics"][tokenAddress][amount] = t["data"][0]["attributes"]["value"]
-
   return transactions 
 }
 
-
 module.exports.start = async (event) => {
-  // const currencies = ['DAI', 'MKR', 'USDC', 'TUSD', 'GUSD', 'USDT', 'PAX']
-  const currencies = ['DAI', 'USDC', 'USDT', 'PAX', 'TUSD']
+  const {
+    start
+  } = require('./uniswapReport');
+
+  const uniswapReport = await start()
+
+}
+
+
+module.exports.start2 = async (event) => {
+  const currencies = ['DAI', 'MKR', 'USDC', 'TUSD', 'GUSD', 'USDT', 'PAX']
+  // const currencies = ['USDC']
+
+  let d = new Date()
   let allReports = {}
   let index
 
@@ -150,18 +198,23 @@ module.exports.start = async (event) => {
     let transferSet = await queryFor24hrTransfersTransactions(currencies[index])
     let reportData = await calculate24hrTransferReport(transferSet)
     
-    console.log(reportData)
-    console.log('-----')
-
     allReports[currencies[index]] = reportData
   }
 
-  let tweet = createMessage(allReports, currencies)
+  // Write report to DynamoDB
+  let res = await putReport(allReports)
 
+  console.log(res)
+    
+  // Create tweet message
+  const stableCurrencies = ['DAI', 'USDC', 'USDT', 'PAX', 'TUSD']
+  let tweet = createMessageForStablecoinReport(allReports, stableCurrencies)
+
+  console.log(allReports)
   console.log(tweet)
 
-  // let response = await sendTweetMessage(message: tweet)
-
+  // Send message to lambda function to tweet
+  // let response = await sendTweetMessage({message: tweet})
   // return response
 }
 

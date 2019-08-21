@@ -18,11 +18,14 @@ async function sendTweet(message) {
 }
 
 module.exports.start = async (event) => {
-	let params = getMessageFromSNS(event).params
+	let params = getMessageFromSNS(event)
 	let response
 
+	console.log('Params')
+	console.log(params)
+
 	if(params.message) {
-		response = await sendTweet(message)
+		response = await sendTweet(params.message)
 	}
 
 	return response

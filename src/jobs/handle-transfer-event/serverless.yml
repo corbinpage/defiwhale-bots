@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: defiwhale-eod-reports # NOTE: update this with your service name
+service: handle-transfer-event # NOTE: update this with your service name
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
@@ -20,7 +20,6 @@ service: defiwhale-eod-reports # NOTE: update this with your service name
 provider:
   name: aws
   runtime: nodejs8.10
-  timeout: 240 
 
 # you can overwrite defaults here
 #  stage: dev
@@ -43,19 +42,7 @@ provider:
 #            - "/*"
 
 # you can define service wide environment variables here
-  environment: 
-    ALETHIO_API_KEY: 'main_ukvahumjgnmoedfvzkr2qxwvozmlyk4p'
-    DYNAMODB_TABLE: 'DAILY_TRANSFER_SUMMARY'
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamodb:Query
-        - dynamodb:Scan
-        - dynamodb:GetItem
-        - dynamodb:PutItem
-        - dynamodb:UpdateItem
-        - dynamodb:DeleteItem
-      Resource: "arn:aws:dynamodb:us-east-1:061031305521:table/DAILY_TRANSFER_SUMMARY"
+  # environment:
 
 # you can add packaging information here
 #package:
@@ -72,9 +59,8 @@ functions:
     layers:
       - {Ref: CommonLibsLambdaLayer}
     events:
-      # Invoke Lambda function every minute
-      - schedule: cron(15 23 * * ? *)
-      # - schedule: rate(20 minutes)
+      - sns: arn:aws:sns:us-east-1:061031305521:botani
+        topicName: handle-transfer-event
 
 layers:
   commonLibs:
