@@ -170,7 +170,6 @@ module.exports.start = async (event) => {
   const currencies = ['DAI', 'MKR', 'USDC', 'TUSD', 'GUSD', 'USDT', 'PAX']
   // const currencies = ['USDC']
 
-  let d = new Date()
   let allReports = {}
   let index
 
