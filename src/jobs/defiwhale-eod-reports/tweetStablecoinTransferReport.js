@@ -27,18 +27,18 @@ module.exports.start = async (reportData={}) => {
   // Get latest report from DynamoDB
   reportData = await getLatestItem('DAILY_TRANSFER_SUMMARY')
 
-  console.log(reportData)
+  // console.log(reportData)
 
-  if(reportData) {
+  if(reportData && reportData.data) {
     // Create tweet message
     const stableCurrencies = ['DAI', 'USDC', 'USDT', 'PAX', 'TUSD']
-    let tweet = createMessageForStablecoinReport(reportData, stableCurrencies)
+    let tweet = createMessageForStablecoinReport(reportData.data, stableCurrencies)
 
     console.log(tweet)
 
     // Send message to lambda function to tweet
-    // let response = await sendTweetMessage({message: tweet})
-    // return response
+    let response = await sendTweetMessage({message: tweet})
+    return response
   }
 
   return null

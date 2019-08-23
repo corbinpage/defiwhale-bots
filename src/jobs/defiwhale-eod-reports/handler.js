@@ -40,24 +40,11 @@ async function tweetUniswapReport() {
   return tweetResponse
 }
 
-
-module.exports.start3 = async (event) => {
-  let stablecoinTweet = await tweetStablecoinTransferReport()
-  // let uniswapTweet = await tweetUniswapReport()
-
-  return null
-}
-
 module.exports.start = async (event) => {
-  // let stablecoinReport = await saveStablecoinTransferReport()
-  // let uniswapReport = await saveUniswapReport()
-
-  let success = !!(stablecoinReport && uniswapReport)
-  console.log(`Status: ${success ? 'Success' : 'Failure'}`)
+  let stablecoinReport = await saveStablecoinTransferReport()
+  let uniswapReport = await saveUniswapReport()
 
   let stablecoinTweet = await tweetStablecoinTransferReport()
   let uniswapTweet = await tweetUniswapReport()
-
-  // return success
 }
 

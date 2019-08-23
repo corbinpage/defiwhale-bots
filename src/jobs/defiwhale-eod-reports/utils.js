@@ -118,43 +118,20 @@ async function getPrices(limit=10) {
 
 module.exports.getLatestItem = async (tableName) => {
 	const dynamoDb = new AWS.DynamoDB.DocumentClient();
-	const d = Math.floor(Date.now() / 1000)
-	const dayStart = d - (d % 86400)
+	const d = Math.floor(Date.now())
+	const dayStart = d - (d % 86400000)
 
   const params = {
     TableName: tableName,
-    KeyConditionExpression: "createdAt >= :a",
+    FilterExpression: "createdAt >= :a",
     ExpressionAttributeValues: {
         ":a": dayStart
-    }
-    // KeyConditionExpression: "ID = :id",
+    },
     ScanIndexForward: false
   }
 
   try {
     const response = await dynamoDb.scan(params).promise()
-
-		return response.Items[0]
-	} catch (error) {
-	  console.error(error);
-	  return {}
-	}
-}
-
-module.exports.getMostRecentItem = async (tableName) => {
-	const dynamoDb = new AWS.DynamoDB.DocumentClient();
-
-  const params = {
-    TableName: tableName,
-    KeyConditionExpression: "createdAt = :createdAt",
-    ExpressionAttributeValues : {
-        ':createdAt' : createdAtTime     
-    }
-    ScanIndexForward: false
-  }
-
-  try {
-    const response = await dynamoDb.query(params).promise()
 
 		return response.Items[0]
 	} catch (error) {
