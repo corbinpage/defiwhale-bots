@@ -116,6 +116,38 @@ async function getPrices(limit=10) {
 	}
 }
 
+module.exports.getLatestItem = async (tableName) => {
+	const dynamoDb = new AWS.DynamoDB.DocumentClient();
+
+  const params = {
+    TableName: tableName,
+    KeyConditionExpression: "ID = :id",
+    // ExpressionAttributeValues: {
+    //     ":id": id
+    // },
+    ScanIndexForward: false
+    // Limit: 2,
+   //  Key: {
+  }
+
+  try {
+    const response = await dynamoDb.scan(params).promise()
+
+
+
+
+    response.Items.forEach(i => {
+    	console.log(i)
+    })
+
+
+		return response.Items[0]
+	} catch (error) {
+	  console.error(error);
+	  return {}
+	}
+}
+
 module.exports.getPriceFromSymbol = async (symbol='DAI') => {
 	const prices = await getPrices()
 	let price = 0

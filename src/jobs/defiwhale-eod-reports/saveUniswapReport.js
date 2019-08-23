@@ -4,11 +4,6 @@ const axios = require('axios')
 const uuid = require('uuid');
 const AWS = require('aws-sdk');
 AWS.config.update({region: 'us-east-1'});
-const {
-  getPriceFromSymbol,
-  formatAmount,
-  getExchangeAddressForSymbol,
-  sendTweetMessage } = require('./utils');
 
 async function getUniswapDailyReportFromTheGraph(startDate=new Date(), currencies=['DAI','MKR','USDC','BAT','WBTC']) {
 	const currentTime = parseInt((startDate.getTime() / 1000).toFixed(0))
@@ -57,39 +52,6 @@ async function getUniswapDailyReportFromTheGraph(startDate=new Date(), currencie
   }
 }
 
-async function createMessageForUniswapReport(reportData, currencies=['DAI', 'MKR', 'USDC', 'BAT', 'WBTC']) {
-  let reportRecords = reportData.data.exchangeDayDatas
-  let usdformatter = new Intl.NumberFormat('en-US', {
-    maximumFractionDigits: 0
-  });
-  const ethPrice = await getPriceFromSymbol('ETH')
-  let message = '🦄💱 24hr Uniswap Report:\n\n'
-  message += '--Daily Volume / Pool Size--\n'
-
-  currencies.forEach((c, i) => {
-  	const exchangeAddress = getExchangeAddressForSymbol(c)
-
-  	const record = reportRecords.filter(r => {
-  		return r.exchangeAddress.toUpperCase() === exchangeAddress.toUpperCase()
-  	})
-
-  	if(record && record[0]) {
-  		let _ = record[0]
-  		_.ethVolumeUsd = _.ethVolume * ethPrice
-  		_.poolSize = _.tokenBalance * _.tokenPriceUSD
-
-    	let nextText = `$${c}: $${usdformatter.format(_.ethVolumeUsd)} ` +
-      	`/ $${usdformatter.format(_.poolSize)}\n`
-
-      message += nextText
-  	}
-  })
-
-  message += `\n#DeFi`
-
-  return message
-}
-
 async function putReport(params) {
   const dynamoDb = new AWS.DynamoDB.DocumentClient();
   const timestamp = new Date().getTime();
@@ -114,24 +76,15 @@ async function putReport(params) {
   }
 };
 
-
-
 module.exports.start = async (event) => {
 	const uniswapReport = await getUniswapDailyReportFromTheGraph()
 
   // Write report to DynamoDB
-  let res = await putReport(uniswapReport)
+  if(uniswapReport && uniswapReport.data.exchangeDayDatas) {
+  	let res = await putReport(uniswapReport)
 
-  // console.log(res)
-    
-  // Create tweet message
-  const uniswapCurrencies = ['DAI', 'MKR', 'USDC', 'BAT', 'WBTC']
-  let tweet = await createMessageForUniswapReport(uniswapReport, uniswapCurrencies)
+  	console.log(uniswapReport.data.exchangeDayDatas)
+  }
 
-  console.log(uniswapReport)
-  console.log(tweet)
-
-  // Send message to lambda function to tweet
-  // let response = await sendTweetMessage({message: tweet})
-  // return response
+  return uniswapReport
 }
