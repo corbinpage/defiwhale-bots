@@ -98,6 +98,36 @@ module.exports.getExchangeAddressForSymbol = (tokenSymbol='DAI') => {
 	return address
 }
 
+module.exports.getSymbolForExchangeAddress = (exchangeAddress='0x') => {
+	let symbol = 'N/A'
+	exchangeAddress = exchangeAddress.toUpperCase()
+  const DAIExchangeAddress = '0x09cabEC1eAd1c0Ba254B09efb3EE13841712bE14'.toUpperCase()
+  const MKRExchangeAddress = '0x2C4Bd064b998838076fa341A83d007FC2FA50957'.toUpperCase()
+  const USDCExchangeAddress = '0x97deC872013f6B5fB443861090ad931542878126'.toUpperCase()
+  const BATExchangeAddress = '0x2E642b8D59B45a1D8c5aEf716A84FF44ea665914'.toUpperCase()
+  const WBTCxchangeAddress = '0x4d2f5cFbA55AE412221182D8475bC85799A5644b'.toUpperCase()
+
+	switch(exchangeAddress) {
+		case DAIExchangeAddress:
+			symbol = 'DAI'
+		break
+		case MKRExchangeAddress:
+			symbol = 'MKR'
+		break
+		case USDCExchangeAddress:
+			symbol = 'USDC'
+		break
+		case BATExchangeAddress:
+			symbol = 'BAT'
+		break
+		case WBTCxchangeAddress:
+			symbol = 'WBTC'
+		break
+	}
+
+	return symbol
+}
+
 async function getPrices(limit=10) {
 	const dynamoDb = new AWS.DynamoDB.DocumentClient();
 

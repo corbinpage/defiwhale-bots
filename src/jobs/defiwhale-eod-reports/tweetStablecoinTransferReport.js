@@ -23,15 +23,27 @@ function createMessageForStablecoinReport(reportData, currencies=['DAI', 'MKR', 
   return message
 }
 
+function orderReportByVolume(reportData, currencies=['DAI', 'MKR', 'USDC']) {
+  currencies.sort((a,b) => (
+    reportData[a].amountUsd < reportData[b].amountUsd) ? 1 :
+      ((reportData[b].amountUsd < reportData[a].amountUsd) ? -1 : 0)
+  ); 
+
+  return currencies
+}
+
 module.exports.start = async (reportData={}) => {
   // Get latest report from DynamoDB
   reportData = await getLatestItem('DAILY_TRANSFER_SUMMARY')
 
-  // console.log(reportData)
+  console.log(reportData)
 
   if(reportData && reportData.data) {
     // Create tweet message
-    const stableCurrencies = ['DAI', 'USDC', 'USDT', 'PAX', 'TUSD']
+    const stableCurrencies = orderReportByVolume(
+      reportData.data,
+      ['DAI', 'USDC', 'USDT', 'PAX', 'TUSD']
+    )
     let tweet = createMessageForStablecoinReport(reportData.data, stableCurrencies)
 
     console.log(tweet)

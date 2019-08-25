@@ -156,16 +156,6 @@ async function queryFor24hrTransfersTransactions(tokenSymbol) {
   return transactions 
 }
 
-// module.exports.start = async (event) => {
-//   const {
-//     start
-//   } = require('./saveUniswapReport');
-
-//   const uniswapReport = await start()
-
-// }
-
-
 module.exports.start = async (event) => {
   const currencies = ['DAI', 'MKR', 'USDC', 'TUSD', 'GUSD', 'USDT', 'PAX']
   // const currencies = ['USDC']

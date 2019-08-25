@@ -5,6 +5,11 @@ const uuid = require('uuid');
 const AWS = require('aws-sdk');
 AWS.config.update({region: 'us-east-1'});
 
+const {
+  getPriceFromSymbol,
+  getSymbolForExchangeAddress
+  } = require('./utils');
+
 async function getUniswapDailyReportFromTheGraph(startDate=new Date(), currencies=['DAI','MKR','USDC','BAT','WBTC']) {
 	const currentTime = parseInt((startDate.getTime() / 1000).toFixed(0))
 	const dayStartTime = currentTime - (currentTime % 864000)
@@ -76,14 +81,39 @@ async function putReport(params) {
   }
 };
 
+function orderReportByVolume(reportData) {
+  reportData.sort((a,b) => (
+    Number(a.ethVolume) < Number(b.ethVolume)) ? 1 :
+      ((Number(b.ethVolume) < Number(a.ethVolume)) ? -1 : 0)
+  ); 
+
+  return reportData
+}
+
+async function calculate24hrUniswapReport(reportData) {
+  let reportRecords = orderReportByVolume(reportData.data.exchangeDayDatas)
+  const ethPrice = await getPriceFromSymbol('ETH')
+
+  reportRecords.forEach((r, i) => {
+    reportRecords[i]['tokenSymbol'] = getSymbolForExchangeAddress(reportRecords[i]['exchangeAddress'])
+    reportRecords[i]['ethVolumeUsd'] = reportRecords[i].ethVolume * ethPrice
+    reportRecords[i]['poolSize'] = reportRecords[i].tokenBalance * reportRecords[i].tokenPriceUSD
+  })
+
+  reportData.data.exchangeDayDatas = reportRecords
+
+  return reportData
+}
+
 module.exports.start = async (event) => {
-	const uniswapReport = await getUniswapDailyReportFromTheGraph()
+  const tempReport = await getUniswapDailyReportFromTheGraph()
+	const uniswapReport = await calculate24hrUniswapReport(tempReport)
+
+  console.log(uniswapReport.data.exchangeDayDatas)
 
   // Write report to DynamoDB
   if(uniswapReport && uniswapReport.data.exchangeDayDatas) {
   	let res = await putReport(uniswapReport)
-
-  	console.log(uniswapReport.data.exchangeDayDatas)
   }
 
   return uniswapReport
