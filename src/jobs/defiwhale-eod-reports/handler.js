@@ -42,9 +42,9 @@ async function tweetUniswapReport() {
 
 module.exports.start = async (event) => {
   let stablecoinReport = await saveStablecoinTransferReport()
-  let uniswapReport = await saveUniswapReport()
+  // let uniswapReport = await saveUniswapReport()
 
-  let stablecoinTweet = await tweetStablecoinTransferReport()
-  let uniswapTweet = await tweetUniswapReport()
+  // let stablecoinTweet = await tweetStablecoinTransferReport()
+  // let uniswapTweet = await tweetUniswapReport()
 }
 

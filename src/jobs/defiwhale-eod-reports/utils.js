@@ -153,15 +153,18 @@ module.exports.getLatestItem = async (tableName) => {
 
   const params = {
     TableName: tableName,
-    FilterExpression: "createdAt >= :a",
-    ExpressionAttributeValues: {
-        ":a": dayStart
-    },
-    ScanIndexForward: false
+    // FilterExpression: "createdAt >= :a",
+    // ExpressionAttributeValues: {
+    //     ":a": dayStart
+    // },
+    Limit: 1,
+    ScanIndexForward: true
   }
 
   try {
     const response = await dynamoDb.scan(params).promise()
+
+    console.log(response)
 
 		return response.Items[0]
 	} catch (error) {

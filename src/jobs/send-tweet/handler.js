@@ -1,25 +1,15 @@
 'use strict';
 
-const { getMessageFromSNS, getPriceFromSymbol } = require('./utils');
+const { getMessageFromSNS } = require('./utils');
 
+const Path = require('path');
+const fs = require('fs');
 const Twit = require('twit');
-const Mustache = require('mustache');
+const AWS = require('aws-sdk');
+AWS.config.update({region: 'us-east-1'});
+const axios = require('axios');
 
-function createMessage(params) {
-	var usNumberFormatter = new Intl.NumberFormat('en-US');
-	var usdformatter = new Intl.NumberFormat('en-US', {
-	  style: 'currency',
-	  currency: 'USD',
-	});
-
-	const tweet =  'Ahoy! {{amount}} {{tokenSymbol}} ({{amountUsd}}) transfer spotted!\n\n#DeFi #{{tokenSymbol}}\nhttps://etherscan.io/tx/{{transactionHash}}'
-	params.amount = usNumberFormatter.format(params.amount.toFixed(2))
-	params.amountUsd = usdformatter.format(params.amountUsd)
-
-	return Mustache.render(tweet, params);
-}
-
-async function sendTweet(message) {
+async function sendTweet(params) {
 	var T = new Twit({
 	  consumer_key: process.env.TWITTER_CONSUMER_KEY,
 	  consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
@@ -27,59 +17,171 @@ async function sendTweet(message) {
 	  access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
 	})
 
-	return T.post('statuses/update', { status: message })
+	return T.post('statuses/update', params)
 }
 
-function isImportantTransfer(params) {
-	let confirmSendMessage = false
+module.exports.start2 = async (event) => {
+	let params = getMessageFromSNS(event)
+	let response
 
-	// Based on USD amoount transferred
-	if(params.tokenSymbol === 'DAI' && params.amountUsd >= 100000) {
-		confirmSendMessage = true
-	} else if(params.tokenSymbol === 'USDC' && params.amountUsd >= 500000) {
-		confirmSendMessage = true
-	} else if(params.tokenSymbol === 'MKR' && params.amountUsd >= 20000) {
-		confirmSendMessage = true
-	}
+  if(params.mediaUrl) {
 
-	console.log(`Send ${params.amount} ${params.tokenSymbol} ($${params.amountUsd}): ${confirmSendMessage}`)
+  }
 
-	return confirmSendMessage
-}
+	console.log('Params')
+	console.log(params)
 
+	if(params.message && params.media_ids) {
+		response = await sendTweet({
+			status: params.message,
+      media_ids: params.media_ids
+    })
+  } else if(params.message) {
+    response = await sendTweet({
+      status: params.message
+    })
+  }
 
-module.exports.start = async (event) => {
-	let confirmSendMessage = false
-	let message = ''
-
-	let params = getMessageFromSNS(event).params
-
-	params.price = await getPriceFromSymbol(
-		params.tokenSymbol
-	)
-	params.amountUsd = params.price * params.amount
-
-	confirmSendMessage = isImportantTransfer(params)
-
-	if(confirmSendMessage) {
-		message = createMessage(
-			params
-		)
-
-		console.log(`${params.amount} ${params.tokenSymbol} @ $${params.price} USD/${params.tokenSymbol}`)
-		console.log(`Total ${params.amountUsd} - ${confirmSendMessage ? 'Send Tweet' : 'No Tweet'}`)
-		console.log('Preparing the tweet...')
-		console.log(message)
-
-		let response = await sendTweet(message)
-	}
-
-	Object.assign(params, {tweetSent: confirmSendMessage, tweetMessage: message});
-
-	return params
+	return responses
 };
 
 
+module.exports.start = async (event) => {
+  let mediaUrl = 'https://quickchart.io/chart?width=500&height=300&c={type:%27bar%27,data:{labels:[%27January%27,%27February%27,%27March%27,%27April%27,%20%27May%27],%20datasets:[{label:%27Dogs%27,data:[50,60,70,180,190]},{label:%27Cats%27,data:[100,200,300,400,500]}]}}'
 
-// Test
-// serverless invoke local -f start --data '{ "Records": [ {"Sns": { "Message": { "params": { "amount": 100000.111, "tokenSymbol": "DAI", "transactionHash": "0xaaf556bc547d7e7ff9e70c0fbb1b787929445fd9c7aa09298c7f30af7c1f8bc8" }, "flowModel": [ { "taskType": "whale-token-transfer-tweet", "inputs": [] } ], "taskHistory": [] } } } ] }'
+
+  //Include the exporter module
+  const chartExporter = require('highcharts-export-server');
+
+  chartExporter.initPool();
+  // Chart details object specifies chart type and data to plot
+  const chartDetails = {
+     type: "png",
+     options: {
+         chart: {
+             type: "pie"
+         },
+         title: {
+             text: "Heading of Chart"
+         },
+         plotOptions: {
+             pie: {
+                 dataLabels: {
+                     enabled: true,
+                     format: "<b>{point.name}</b>: {point.y}"
+                 }
+             }
+         },
+         series: [
+             {
+                 data: [
+                     {
+                         name: "a",
+                         y: 100
+                     },
+                     {
+                         name: "b",
+                         y: 20
+                     },
+                     {
+                         name: "c",
+                         y: 50
+                     }
+                 ]
+             }
+         ]
+     }
+  };
+
+  chartExporter.export(chartDetails, (err, res) => {
+     // Get the image data (base64)
+     let imageb64 = res.data;
+     // Filename of the output
+     let outputFile = "./tmp/bar.png";
+     // Save the image to file
+     fs.writeFileSync(outputFile, imageb64, "base64", function(err) {
+         if (err) console.log(err);
+     });
+     console.log("Saved image!");
+     chartExporter.killPool();
+  });
+
+
+  // const b64content = fs.readFileSync(mediaUrl, { encoding: 'base64' })
+
+  // const file = fs.createWriteStream("tmp/temp.jpg");
+  // const request = http.get(mediaUrl, function(response) {
+  //   response.pipe(file);
+  // });
+
+  // const path = Path.resolve(__dirname, '/tmp', 'temp.jpg')
+  // const writer = fs.createWriteStream(path)
+
+  // const tmpFile = await getImage(mediaUrl)
+
+  // console.log(tmpFile)
+
+
+// 600x600 canvas size
+// var chartNode = new ChartjsNode(600, 600);
+// return chartNode.drawChart(chartJsOptions)
+// .then(() => {
+//     // chart is created
+ 
+//     // get image as png buffer
+//     return chartNode.getImageBuffer('image/png');
+// })
+// .then(buffer => {
+//     Array.isArray(buffer) // => true
+//     // as a stream
+//     return chartNode.getImageStream('image/png');
+// })
+// .then(streamResult => {
+//     // using the length property you can do things like
+//     // directly upload the image to s3 by using the
+//     // stream and length properties
+//     streamResult.stream // => Stream object
+//     streamResult.length // => Integer length of stream
+//     // write to a file
+//     return chartNode.writeImageToFile('image/png', './testimage.png');
+// })
+// .then(() => {
+//     // chart is now written to the file path
+//     // ./testimage.png
+// });
+
+
+
+};
+
+
+//
+// post a tweet with media
+//
+// var b64content = fs.readFileSync('/path/to/img', { encoding: 'base64' })
+
+// // first we must post the media to Twitter
+// T.post('media/upload', { media_data: b64content }, function (err, data, response) {
+//   // now we can assign alt text to the media, for use by screen readers and
+//   // other text-based presentations and interpreters
+//   var mediaIdStr = data.media_id_string
+//   var altText = "Small flowers in a planter on a sunny balcony, blossoming."
+//   var meta_params = { media_id: mediaIdStr, alt_text: { text: altText } }
+
+//   T.post('media/metadata/create', meta_params, function (err, data, response) {
+//     if (!err) {
+//       // now we can reference the media and post a tweet (media will attach to the tweet)
+//       var params = { status: 'loving life #nofilter', media_ids: [mediaIdStr] }
+
+//       T.post('statuses/update', params, function (err, data, response) {
+//         console.log(data)
+//       })
+//     }
+//   })
+// })
+
+
+
+
+
+

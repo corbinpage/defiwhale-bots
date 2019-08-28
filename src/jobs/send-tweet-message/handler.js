@@ -25,7 +25,10 @@ module.exports.start = async (event) => {
 	console.log(params)
 
 	if(params.message) {
-		response = await sendTweet(params.message)
+		response = await sendTweet({
+			status: params.message
+    })
+    }
 	}
 
 	return response

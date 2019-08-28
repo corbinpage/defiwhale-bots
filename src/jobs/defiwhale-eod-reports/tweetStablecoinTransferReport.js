@@ -1,5 +1,6 @@
 'use strict';
 
+const { start: createChartImage } = require('./createChartImage.js')
 const {
   formatAmount,
   getLatestItem,
@@ -44,13 +45,26 @@ module.exports.start = async (reportData={}) => {
       reportData.data,
       ['DAI', 'USDC', 'USDT', 'PAX', 'TUSD']
     )
+    const amountUsdArray = stableCurrencies.map((c, i) => {
+      return reportData.data[c].amountUsd
+    })
+
+    let chartImageBinary = await createChartImage(stableCurrencies, amountUsdArray)
     let tweet = createMessageForStablecoinReport(reportData.data, stableCurrencies)
 
     console.log(tweet)
 
     // Send message to lambda function to tweet
-    let response = await sendTweetMessage({message: tweet})
-    return response
+    // if(chartImageBinary) {
+    //   let response = await sendTweetMessage({
+    //     message: tweet,
+    //     media: [].push(chartImageBinary)
+    //   })
+    //   return response
+    // } else {
+    //   let response = await sendTweetMessage({message: tweet})
+    //   return response
+    // }
   }
 
   return null
