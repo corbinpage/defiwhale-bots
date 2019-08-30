@@ -153,12 +153,40 @@ module.exports.getLatestItem = async (tableName) => {
 
   const params = {
     TableName: tableName,
-    // FilterExpression: "createdAt >= :a",
-    // ExpressionAttributeValues: {
-    //     ":a": dayStart
-    // },
-    Limit: 1,
+    FilterExpression: "createdAt >= :a",
+    ExpressionAttributeValues: {
+        ":a": dayStart
+    },
+    // Limit: 1,
     ScanIndexForward: true
+  }
+
+  try {
+    const response = await dynamoDb.scan(params).promise()
+
+    console.log(response)
+    console.log(dayStart)
+
+		return response.Items[0]
+	} catch (error) {
+	  console.error(error);
+	  return {}
+	}
+}
+
+module.exports.getDailyStableTransferReport = async (date=new Date()) => {
+	const dynamoDb = new AWS.DynamoDB.DocumentClient();
+  const dateTime = parseInt((date.getTime() / 1000).toFixed(0))
+  const dayTime = dateTime - (dateTime % 86400)
+
+  const params = {
+    TableName: tableName,
+    FilterExpression: "dayId >= :a",
+    ExpressionAttributeValues: {
+        ":a": dayTime
+    },
+    Limit: 1,
+    ScanIndexForward: false
   }
 
   try {

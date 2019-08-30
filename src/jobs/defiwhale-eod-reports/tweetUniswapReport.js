@@ -41,8 +41,8 @@ module.exports.start = async (reportData={}) => {
     console.log(tweet)
 
     // Send message to lambda function to tweet
-    // let response = await sendTweetMessage({message: tweet})
-    // return response
+    let response = await sendTweetMessage({message: tweet})
+    return response
   }
 
   return null

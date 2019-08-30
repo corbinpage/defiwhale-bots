@@ -7,7 +7,7 @@ AWS.config.update({region: 'us-east-1'});
 const {
   adjustTokenAmount,
   getPriceFromSymbol,
-  getAddressForSymbol
+  getAddressForSymbol,
   } = require('./utils');
 
 async function getTokenTransfersFromAlethio(tokenAddress, inputUrl='') {
@@ -113,6 +113,35 @@ async function putReport(params) {
   }
 };
 
+async function putReport2(params) {
+  const dynamoDb = new AWS.DynamoDB.DocumentClient();
+  const dateTime = parseInt((new Date().getTime() / 1000).toFixed(0))
+  const dayTime = dateTime - (dateTime % 86400)
+  const dayString = new Date(dateTime * 1000).toString()
+
+  const record = {
+    TableName: 'DAILY_STABLE_TRANSFER_SUMMARY',
+    Item: {
+      dayId: dayTime,
+      dayString: dayString,
+      data: params,
+      createdAt: dateTime,
+      updatedAt: dateTime,
+    },
+  }
+
+  try {
+    const response = await dynamoDb.put(record).promise();
+
+    console.log(record)
+
+    return response
+  } catch (error) {
+    console.error(error);
+    return {error}
+  }
+};
+
 async function queryFor24hrTransfersTransactions(tokenSymbol) {
   const tokenAddress = getAddressForSymbol(tokenSymbol)
 
@@ -172,7 +201,8 @@ module.exports.start = async (event) => {
 
   if(allReports) {
 	  // Write report to DynamoDB
-	  let res = await putReport(allReports)
+    let res = await putReport(allReports)
+	  res = await putReport2(allReports)
 
     console.log(allReports)
   }

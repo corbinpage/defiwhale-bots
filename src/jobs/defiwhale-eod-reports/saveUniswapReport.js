@@ -12,7 +12,7 @@ const {
 
 async function getUniswapDailyReportFromTheGraph(startDate=new Date(), currencies=['DAI','MKR','USDC','BAT','WBTC']) {
 	const currentTime = parseInt((startDate.getTime() / 1000).toFixed(0))
-	const dayStartTime = currentTime - (currentTime % 864000)
+	const dayStartTime = currentTime - (currentTime % 86400)
 	const query = `
 		{
 		  exchangeDayDatas(first: 5, sorderBy: date, orderDirection: desc, where: {date: ${dayStartTime}, exchangeAddress_in: ["0x09cabEC1eAd1c0Ba254B09efb3EE13841712bE14", "0x2C4Bd064b998838076fa341A83d007FC2FA50957", "0x97deC872013f6B5fB443861090ad931542878126", "0x2E642b8D59B45a1D8c5aEf716A84FF44ea665914", "0x4d2f5cFbA55AE412221182D8475bC85799A5644b"]}) {

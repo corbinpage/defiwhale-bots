@@ -2,12 +2,9 @@
 
 const { getMessageFromSNS } = require('./utils');
 
-const Path = require('path');
-const fs = require('fs');
 const Twit = require('twit');
 const AWS = require('aws-sdk');
 AWS.config.update({region: 'us-east-1'});
-const axios = require('axios');
 
 async function sendTweet(params) {
 	var T = new Twit({
@@ -20,38 +17,18 @@ async function sendTweet(params) {
 	return T.post('statuses/update', params)
 }
 
-module.exports.start2 = async (event) => {
+module.exports.start = async (event) => {
 	let params = getMessageFromSNS(event)
 	let response
 
-  if(params.mediaUrl) {
-
-  }
-
-	console.log('Params')
+	console.log('Params:')
 	console.log(params)
 
-	if(params.message && params.media_ids) {
+	if(params.status) {
 		response = await sendTweet({
-			status: params.message,
-      media_ids: params.media_ids
-    })
-  } else if(params.message) {
-    response = await sendTweet({
-      status: params.message
+			status: params.status
     })
   }
 
-	return responses
+	return response
 };
-
-
-module.exports.start = async (event) => {
-  
-
-
-};
-
-
-
-
