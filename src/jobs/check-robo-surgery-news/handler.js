@@ -5,6 +5,7 @@ const {
   sendTweetMessage,
   } = require('./utils');
 const alerts = require('google-alerts-api')
+let Parser = require('rss-parser');
 
 // async function getTokenTransfersFromAlethio(tokenAddress, inputUrl='') {
 // 	const base = 'https://api.aleth.io/'
@@ -54,21 +55,25 @@ const alerts = require('google-alerts-api')
     }
   }
 
-async function getTickerNews(tickers) {
+async function getGoogleAlerts() {
   const { HOW_OFTEN, DELIVER_TO, HOW_MANY, SOURCE_TYPE } = alerts;
 
-  return 'Testing, testing 123'
-
   try {
+    const SID = process.env.GOOGLE_ALERTS_SID
+    const HSID = process.env.GOOGLE_ALERTS_HSID
+    const SSID = process.env.GOOGLE_ALERTS_SSID
+
     alerts.configure({
-        mail: 'your_mail@gmail.com',
-        password: '**********'
+        cookies: alerts.generateCookiesBySID(SID, HSID, SSID).toString()
     });
 
-    return alerts.sync((err) => {
-      if(err) return console.log(err);
-      return alerts.getAlerts();
-    });
+    return new Promise((resolve, reject) => {
+      alerts.sync((err) => {
+          if(err) reject(new Error(err))
+
+          resolve(alerts.getAlerts())
+        });            
+      })
 
   } catch (error) {
     console.error(error);
@@ -76,20 +81,30 @@ async function getTickerNews(tickers) {
   }
 }
 
-async function createMessageForRoboSurgeryTweet(newsData) {
+async function createMessageForRoboSurgeryTweet(newObj) {
+  console.log(newObj)
 
-  return 'Testing, testing 123'
+  let message = `${newObj.title}\n\n${newObj.link}`
+
+  return message
+}
+
+async function parseRssFeed(url) {
+  let parser = new Parser();
+  let feed = await parser.parseURL(url);
+
+  return feed.items
 }
 
 module.exports.start = async (event) => {
-  const tickers = ['ISRG']
 
-  const newsResults = await getTickerNews(tickers)
+  const newsResults = await getGoogleAlerts()
+  const newsObjects = await parseRssFeed(newsResults[0]['rss'])
 
-  console.log(newsResults)
+  // console.log(newsResults)
 
-  if(false && newsResults) {
-    const tweet = await createMessageForRoboSurgeryTweet()
+  if(newsObjects && newsObjects[0]) {
+    const tweet = await createMessageForRoboSurgeryTweet(newsObjects[0])
 
     console.log(tweet)
 

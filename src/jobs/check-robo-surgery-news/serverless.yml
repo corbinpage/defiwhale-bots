@@ -42,8 +42,12 @@ provider:
 #            - "/*"
 
 # you can define service wide environment variables here
-#  environment:
-#    variable1: value1
+# you can define service wide environment variables here
+  environment:
+    GOOGLE_ALERTS_SID: ''
+    GOOGLE_ALERTS_HSID: ''
+    GOOGLE_ALERTS_SSID: ''
+
 
 # you can add packaging information here
 #package:
@@ -62,7 +66,7 @@ functions:
     events:
       # Invoke Lambda function every minute
       # - schedule: cron(15 23 * * ? *)
-      - schedule: rate(120 minutes)
+      - schedule: rate(360 minutes)
 
 layers:
   commonLibs:
