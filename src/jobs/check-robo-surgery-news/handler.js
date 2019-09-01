@@ -7,54 +7,6 @@ const {
 const alerts = require('google-alerts-api')
 let Parser = require('rss-parser');
 
-// async function getTokenTransfersFromAlethio(tokenAddress, inputUrl='') {
-// 	const base = 'https://api.aleth.io/'
-// 	const version = 'v1'
-//   const limit = '100'
-// 	const path = `/tokens/${tokenAddress}/tokenTransfers?page[limit]=${limit}`
-//   const url = inputUrl ? encodeURI(inputUrl) : `${base}${version}${path}`
-
-//   const auth = {
-//     username: process.env.ALETHIO_API_KEY,
-//     password: ''
-//   }
-
-// 	let headers = {
-//   	'Accept': 'application/json'
-//   }
-
-// 	let params = {}
-
-// 	try {
-//     const response = await axios({
-// 		  method: 'get',
-//       auth: auth,
-// 		  url: url,
-// 		  headers: headers,
-// 		  params: params
-// 		})
-
-//     // console.log(response)
-//     // console.log('-------')
-//     // console.log(response.data)
-
-//     return response.data
-//   } catch (error) {
-//     console.error(error)
-//     return {}
-//   }
-// }
-
-  function printAlertInfo(alert) {
-    console.log('name:', alert.name);
-    //'How Many' property information:
-    if (alert.howMany === HOW_MANY.BEST) {
-      console.log('How many: Only the best results');
-    } else if (alert.howMany === HOW_MANY.ALL) {
-      console.log('How many: All Results');
-    }
-  }
-
 async function getGoogleAlerts() {
   const { HOW_OFTEN, DELIVER_TO, HOW_MANY, SOURCE_TYPE } = alerts;
 
@@ -101,7 +53,7 @@ module.exports.start = async (event) => {
   const newsResults = await getGoogleAlerts()
   const newsObjects = await parseRssFeed(newsResults[0]['rss'])
 
-  // console.log(newsResults)
+  console.log(newsObjects)
 
   if(newsObjects && newsObjects[0]) {
     const tweet = await createMessageForRoboSurgeryTweet(newsObjects[0])
