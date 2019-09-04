@@ -3,8 +3,7 @@
 const { start: createChartImage } = require('./createChartImage.js')
 const {
   formatAmount,
-  getLatestItem,
-  getDailyStableTransferReport,
+  getReportSummaryForDay,
   sendTweetMessage } = require('./utils');
 
 function createMessageForStablecoinReport(reportData, currencies=['DAI', 'MKR', 'USDC']) {
@@ -36,11 +35,9 @@ function orderReportByVolume(reportData, currencies=['DAI', 'MKR', 'USDC']) {
 
 module.exports.start = async (reportData={}) => {
   // Get latest report from DynamoDB
-  reportData = await getLatestItem('DAILY_TRANSFER_SUMMARY')
-  // let altReport = reportData = await getDailyStableTransferReport()
+  reportData = await getReportSummaryForDay('DAILY_STABLE_TRANSFER_SUMMARY', new Date())
 
   console.log(reportData)
-  // console.log(altReport)
 
   if(reportData && reportData.data) {
     // Create tweet message

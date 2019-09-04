@@ -91,30 +91,6 @@ async function calculate24hrTransferReport(tokenTransferSet) {
 
 async function putReport(params) {
   const dynamoDb = new AWS.DynamoDB.DocumentClient();
-  const timestamp = new Date().getTime();
-
-  const record = {
-    TableName: process.env.DYNAMODB_TABLE,
-    Item: {
-      id: uuid.v1(),
-      data: params,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    },
-  }
-
-  try {
-    const response = await dynamoDb.put(record).promise();
-
-    return response
-  } catch (error) {
-    console.error(error);
-    return {error}
-  }
-};
-
-async function putReport2(params) {
-  const dynamoDb = new AWS.DynamoDB.DocumentClient();
   const dateTime = parseInt((new Date().getTime() / 1000).toFixed(0))
   const dayTime = dateTime - (dateTime % 86400)
   const dayString = new Date(dateTime * 1000).toString()
@@ -199,12 +175,11 @@ module.exports.start = async (event) => {
     allReports[currencies[index]] = reportData
   }
 
+  // console.log(allReports)
+
   if(allReports) {
 	  // Write report to DynamoDB
     let res = await putReport(allReports)
-	  res = await putReport2(allReports)
-
-    console.log(allReports)
   }
 
   return allReports

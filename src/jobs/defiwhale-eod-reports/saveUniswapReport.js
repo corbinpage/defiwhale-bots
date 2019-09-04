@@ -47,8 +47,8 @@ async function getUniswapDailyReportFromTheGraph(startDate=new Date(), currencie
 		})
 
     // console.log(response)
-    // console.log('-------')
-    // console.log(response.data)
+
+    response.data['dayId'] = dayStartTime
 
     return response.data
   } catch (error) {
@@ -59,20 +59,25 @@ async function getUniswapDailyReportFromTheGraph(startDate=new Date(), currencie
 
 async function putReport(params) {
   const dynamoDb = new AWS.DynamoDB.DocumentClient();
-  const timestamp = new Date().getTime();
+  const dateTime = parseInt((new Date().getTime() / 1000).toFixed(0))
+  const dayTime = dateTime - (dateTime % 86400)
+  const dayString = new Date(dateTime * 1000).toString()
 
   const record = {
-    TableName: 'DAILY_UNISWAP_SUMMARY',
+    TableName: 'DAILY_UNISWAP_VOLUME_SUMMARY',
     Item: {
-      id: uuid.v1(),
-      data: params,
-      createdAt: timestamp,
-      updatedAt: timestamp,
+      dayId: params.dayId,
+      dayString: dayString,
+      data: params.data,
+      createdAt: dateTime,
+      updatedAt: dateTime
     },
   }
 
   try {
     const response = await dynamoDb.put(record).promise();
+
+    // console.log(response)
 
     return response
   } catch (error) {
@@ -80,6 +85,7 @@ async function putReport(params) {
     return {error}
   }
 };
+
 
 function orderReportByVolume(reportData) {
   reportData.sort((a,b) => (
@@ -109,11 +115,11 @@ module.exports.start = async (event) => {
   const tempReport = await getUniswapDailyReportFromTheGraph()
 	const uniswapReport = await calculate24hrUniswapReport(tempReport)
 
-  console.log(uniswapReport.data.exchangeDayDatas)
+  // console.log(uniswapReport.data.exchangeDayDatas)
 
   // Write report to DynamoDB
   if(uniswapReport && uniswapReport.data.exchangeDayDatas) {
-  	let res = await putReport(uniswapReport)
+    let res = await putReport(uniswapReport)
   }
 
   return uniswapReport

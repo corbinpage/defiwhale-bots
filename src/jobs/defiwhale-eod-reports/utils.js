@@ -146,55 +146,26 @@ async function getPrices(limit=10) {
 	}
 }
 
-module.exports.getLatestItem = async (tableName) => {
-	const dynamoDb = new AWS.DynamoDB.DocumentClient();
-	const d = Math.floor(Date.now())
-	const dayStart = d - (d % 86400000)
-
-  const params = {
-    TableName: tableName,
-    FilterExpression: "createdAt >= :a",
-    ExpressionAttributeValues: {
-        ":a": dayStart
-    },
-    // Limit: 1,
-    ScanIndexForward: true
-  }
-
-  try {
-    const response = await dynamoDb.scan(params).promise()
-
-    console.log(response)
-    console.log(dayStart)
-
-		return response.Items[0]
-	} catch (error) {
-	  console.error(error);
-	  return {}
-	}
-}
-
-module.exports.getDailyStableTransferReport = async (date=new Date()) => {
+module.exports.getReportSummaryForDay = async (tableName, date=new Date()) => {
 	const dynamoDb = new AWS.DynamoDB.DocumentClient();
   const dateTime = parseInt((date.getTime() / 1000).toFixed(0))
   const dayTime = dateTime - (dateTime % 86400)
 
   const params = {
     TableName: tableName,
-    FilterExpression: "dayId >= :a",
-    ExpressionAttributeValues: {
-        ":a": dayTime
+    Key: {
+      dayId: dayTime
     },
-    Limit: 1,
     ScanIndexForward: false
   }
 
   try {
-    const response = await dynamoDb.scan(params).promise()
+    const response = await dynamoDb.get(params).promise()
 
-    console.log(response)
+    // console.log(dayTime)
+    // console.log(response)
 
-		return response.Items[0]
+		return response.Item
 	} catch (error) {
 	  console.error(error);
 	  return {}
@@ -213,31 +184,6 @@ module.exports.getPriceFromSymbol = async (symbol='DAI') => {
 	}
 
 	return price
-}
-
-async function getDailyTransferReports(limit=1) {
-	const dynamoDb = new AWS.DynamoDB.DocumentClient();
-
-  const params = {
-    TableName: 'DAILY_TRANSFER_SUMMARY',
-    Limit: limit
-  }
-
-  try {
-    const response = await dynamoDb.scan(params).promise()
-
-		return response.Items
-	} catch (error) {
-	  console.error(error);
-	  return {}
-	}
-}
-
-module.exports.getLatestTransferReport = async () => {
-	const dailyReports = await getDailyTransferReports()
-	let price = 0
-
-	return dailyReports[0]
 }
 
 module.exports.getMessageFromSNS = (input) => {

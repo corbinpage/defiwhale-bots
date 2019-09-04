@@ -3,7 +3,7 @@
 const {
   getPriceFromSymbol,
   getExchangeAddressForSymbol,
-  getLatestItem,
+  getReportSummaryForDay,
   sendTweetMessage } = require('./utils');
 
 async function createMessageForUniswapReport(reportData, currencies=['DAI', 'MKR', 'USDC', 'BAT', 'WBTC']) {
@@ -28,8 +28,7 @@ async function createMessageForUniswapReport(reportData, currencies=['DAI', 'MKR
 
 module.exports.start = async (reportData={}) => {
   // Get latest report from DynamoDB
-  reportData = await getLatestItem('DAILY_UNISWAP_SUMMARY')
-  reportData = reportData.data
+  reportData = await getReportSummaryForDay('DAILY_UNISWAP_VOLUME_SUMMARY', new Date())
 
   console.log(reportData.data.exchangeDayDatas)
 
