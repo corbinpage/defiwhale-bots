@@ -62,8 +62,8 @@ module.exports.start = async (reportData={}) => {
     //   })
     //   return response
     // } else {
-      let response = await sendTweetMessage({message: tweet})
-      return response
+      // let response = await sendTweetMessage({message: tweet})
+      // return response
     // }
   }
 
