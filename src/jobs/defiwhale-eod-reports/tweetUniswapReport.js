@@ -15,8 +15,9 @@ async function createMessageForUniswapReport(reportData, currencies=['DAI', 'MKR
   message += '--Daily Volume / Pool Size--\n'
 
   reportRecords.forEach((record, i) => {
+    let poolSize = record.poolSize !== 0 ? record.poolSize : record.poolSizeTkn
     let nextText = `$${record.tokenSymbol}: $${usdformatter.format(record.ethVolumeUsd)} ` +
-      `/ $${usdformatter.format(record.poolSize)}\n`
+      `/ $${usdformatter.format(poolSize)}\n`
 
     message += nextText
   })
@@ -30,18 +31,18 @@ module.exports.start = async (reportData={}) => {
   // Get latest report from DynamoDB
   reportData = await getReportSummaryForDay('DAILY_UNISWAP_VOLUME_SUMMARY', new Date())
 
-  console.log(reportData.data.exchangeDayDatas)
+  // console.log(reportData.data.exchangeDayDatas)
 
    // Create tweet message
   if(reportData && reportData.data.exchangeDayDatas) {
-    const uniswapCurrencies = ['DAI', 'MKR', 'USDC', 'BAT', 'WBTC']
+    const uniswapCurrencies = ['DAI', 'MKR', 'USDC', 'BAT', 'WBTC', 'SNX']
     let tweet = await createMessageForUniswapReport(reportData, uniswapCurrencies)
  
     console.log(tweet)
 
     // Send message to lambda function to tweet
-    // let response = await sendTweetMessage({message: tweet})
-    // return response
+    let response = await sendTweetMessage({message: tweet})
+    return response
   }
 
   return null

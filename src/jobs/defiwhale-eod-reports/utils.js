@@ -75,7 +75,8 @@ module.exports.getExchangeAddressForSymbol = (tokenSymbol='DAI') => {
   const MKRExchangeAddress = '0x2C4Bd064b998838076fa341A83d007FC2FA50957'
   const USDCExchangeAddress = '0x97deC872013f6B5fB443861090ad931542878126'
   const BATExchangeAddress = '0x2E642b8D59B45a1D8c5aEf716A84FF44ea665914'
-  const WBTCxchangeAddress = '0x4d2f5cFbA55AE412221182D8475bC85799A5644b'
+  const WBTCExchangeAddress = '0x4d2f5cFbA55AE412221182D8475bC85799A5644b'
+  const SNXExchangeAddress = '0x3958b4ec427f8fa24eb60f42821760e88d485f7f'
 
 	switch(tokenSymbol) {
 		case 'DAI':
@@ -91,7 +92,10 @@ module.exports.getExchangeAddressForSymbol = (tokenSymbol='DAI') => {
 			address = BATExchangeAddress
 		break
 		case 'WBTC':
-			address = WBTCxchangeAddress
+			address = WBTCExchangeAddress
+		break
+		case 'SNX':
+			address = SNXExchangeAddress
 		break
 	}
 
@@ -105,7 +109,8 @@ module.exports.getSymbolForExchangeAddress = (exchangeAddress='0x') => {
   const MKRExchangeAddress = '0x2C4Bd064b998838076fa341A83d007FC2FA50957'.toUpperCase()
   const USDCExchangeAddress = '0x97deC872013f6B5fB443861090ad931542878126'.toUpperCase()
   const BATExchangeAddress = '0x2E642b8D59B45a1D8c5aEf716A84FF44ea665914'.toUpperCase()
-  const WBTCxchangeAddress = '0x4d2f5cFbA55AE412221182D8475bC85799A5644b'.toUpperCase()
+  const WBTCExchangeAddress = '0x4d2f5cFbA55AE412221182D8475bC85799A5644b'.toUpperCase()
+  const SNXExchangeAddress = '0x3958b4ec427f8fa24eb60f42821760e88d485f7f'.toUpperCase()
 
 	switch(exchangeAddress) {
 		case DAIExchangeAddress:
@@ -120,8 +125,11 @@ module.exports.getSymbolForExchangeAddress = (exchangeAddress='0x') => {
 		case BATExchangeAddress:
 			symbol = 'BAT'
 		break
-		case WBTCxchangeAddress:
+		case WBTCExchangeAddress:
 			symbol = 'WBTC'
+		break
+		case SNXExchangeAddress:
+			symbol = 'SNX'
 		break
 	}
 
