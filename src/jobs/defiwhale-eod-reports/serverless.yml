@@ -20,7 +20,7 @@ service: defiwhale-eod-reports # NOTE: update this with your service name
 provider:
   name: aws
   runtime: nodejs8.10
-  timeout: 240 
+  timeout: 600
 
 # you can overwrite defaults here
 #  stage: dev

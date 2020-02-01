@@ -69,71 +69,28 @@ module.exports.getAddressForSymbol = (tokenSymbol='DAI') => {
 	return address
 }
 
+let uniswapExchanges = {
+	'DAI': '0x09cabEC1eAd1c0Ba254B09efb3EE13841712bE14',
+	'MKR': '0x2C4Bd064b998838076fa341A83d007FC2FA50957',
+	'USDC': '0x97deC872013f6B5fB443861090ad931542878126',
+	'BAT': '0x2E642b8D59B45a1D8c5aEf716A84FF44ea665914',
+	'WBTC': '0x4d2f5cFbA55AE412221182D8475bC85799A5644b',
+	'SNX': '0x3958b4ec427f8fa24eb60f42821760e88d485f7f',	
+}
+
+uniswapExchanges['0x09cabEC1eAd1c0Ba254B09efb3EE13841712bE14'.toUpperCase()] = 'DAI'
+uniswapExchanges['0x2C4Bd064b998838076fa341A83d007FC2FA50957'.toUpperCase()] = 'MKR'
+uniswapExchanges['0x97deC872013f6B5fB443861090ad931542878126'.toUpperCase()] = 'USDC'
+uniswapExchanges['0x2E642b8D59B45a1D8c5aEf716A84FF44ea665914'.toUpperCase()] = 'BAT'
+uniswapExchanges['0x4d2f5cFbA55AE412221182D8475bC85799A5644b'.toUpperCase()] = 'WBTC'
+uniswapExchanges['0x3958b4ec427f8fa24eb60f42821760e88d485f7f'.toUpperCase()] = 'SNX'
+
 module.exports.getExchangeAddressForSymbol = (tokenSymbol='DAI') => {
-	let address = '0x'
-  const DAIExchangeAddress = '0x09cabEC1eAd1c0Ba254B09efb3EE13841712bE14'
-  const MKRExchangeAddress = '0x2C4Bd064b998838076fa341A83d007FC2FA50957'
-  const USDCExchangeAddress = '0x97deC872013f6B5fB443861090ad931542878126'
-  const BATExchangeAddress = '0x2E642b8D59B45a1D8c5aEf716A84FF44ea665914'
-  const WBTCExchangeAddress = '0x4d2f5cFbA55AE412221182D8475bC85799A5644b'
-  const SNXExchangeAddress = '0x3958b4ec427f8fa24eb60f42821760e88d485f7f'
-
-	switch(tokenSymbol) {
-		case 'DAI':
-			address = DAIExchangeAddress
-		break
-		case 'MKR':
-			address = MKRExchangeAddress
-		break
-		case 'USDC':
-			address = USDCExchangeAddress
-		break
-		case 'BAT':
-			address = BATExchangeAddress
-		break
-		case 'WBTC':
-			address = WBTCExchangeAddress
-		break
-		case 'SNX':
-			address = SNXExchangeAddress
-		break
-	}
-
-	return address
+	return uniswapExchanges[tokenSymbol] || '0x'
 }
 
 module.exports.getSymbolForExchangeAddress = (exchangeAddress='0x') => {
-	let symbol = 'N/A'
-	exchangeAddress = exchangeAddress.toUpperCase()
-  const DAIExchangeAddress = '0x09cabEC1eAd1c0Ba254B09efb3EE13841712bE14'.toUpperCase()
-  const MKRExchangeAddress = '0x2C4Bd064b998838076fa341A83d007FC2FA50957'.toUpperCase()
-  const USDCExchangeAddress = '0x97deC872013f6B5fB443861090ad931542878126'.toUpperCase()
-  const BATExchangeAddress = '0x2E642b8D59B45a1D8c5aEf716A84FF44ea665914'.toUpperCase()
-  const WBTCExchangeAddress = '0x4d2f5cFbA55AE412221182D8475bC85799A5644b'.toUpperCase()
-  const SNXExchangeAddress = '0x3958b4ec427f8fa24eb60f42821760e88d485f7f'.toUpperCase()
-
-	switch(exchangeAddress) {
-		case DAIExchangeAddress:
-			symbol = 'DAI'
-		break
-		case MKRExchangeAddress:
-			symbol = 'MKR'
-		break
-		case USDCExchangeAddress:
-			symbol = 'USDC'
-		break
-		case BATExchangeAddress:
-			symbol = 'BAT'
-		break
-		case WBTCExchangeAddress:
-			symbol = 'WBTC'
-		break
-		case SNXExchangeAddress:
-			symbol = 'SNX'
-		break
-	}
-
-	return symbol
+	return uniswapExchanges[exchangeAddress.toUpperCase()] || 'N/A'
 }
 
 async function getPrices(limit=10) {
@@ -232,4 +189,11 @@ module.exports.sendTweetMessage = async (params) => {
 	let res = await sendSNSMessage('send-tweet-message', params)
 
 	return res
+}
+
+module.exports.getDayId = async () => {
+  const dateTime = parseInt((new Date().getTime() / 1000).toFixed(0))
+  const dayId = dateTime - (dateTime % 86400)
+
+	return dayId.toString()
 }

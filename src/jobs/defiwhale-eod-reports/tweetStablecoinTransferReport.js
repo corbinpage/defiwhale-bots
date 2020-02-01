@@ -33,9 +33,9 @@ function orderReportByVolume(reportData, currencies=['DAI', 'MKR', 'USDC']) {
   return currencies
 }
 
-module.exports.start = async (reportData={}) => {
+module.exports.start = async (send=false) => {
   // Get latest report from DynamoDB
-  reportData = await getReportSummaryForDay('DAILY_STABLE_TRANSFER_SUMMARY', new Date())
+  let reportData = await getReportSummaryForDay('DAILY_STABLE_TRANSFER_SUMMARY', new Date())
 
   console.log(reportData)
 
@@ -49,22 +49,15 @@ module.exports.start = async (reportData={}) => {
       return reportData.data[c].amountUsd
     })
 
-    let chartImageBinary = await createChartImage(stableCurrencies, amountUsdArray)
+    // let chartImageBinary = await createChartImage(stableCurrencies, amountUsdArray)
     let tweet = createMessageForStablecoinReport(reportData.data, stableCurrencies)
 
     console.log(tweet)
 
-    // Send message to lambda function to tweet
-    // if(chartImageBinary) {
-    //   let response = await sendTweetMessage({
-    //     message: tweet,
-    //     media: [].push(chartImageBinary)
-    //   })
-    //   return response
-    // } else {
-      // let response = await sendTweetMessage({message: tweet})
-      // return response
-    // }
+    if(send) {
+      let response = await sendTweetMessage({message: tweet})
+      return response  
+    }
   }
 
   return null

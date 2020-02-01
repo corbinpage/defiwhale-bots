@@ -1,5 +1,10 @@
 'use strict';
 
+const {
+  saveTLVReport,
+  tweetTLVReport,
+} = require('./tlvReport');
+
 async function saveStablecoinTransferReport() {
   const {
     start
@@ -41,10 +46,13 @@ async function tweetUniswapReport() {
 }
 
 module.exports.start = async (event) => {
-  let stablecoinReport = await saveStablecoinTransferReport()
-  let uniswapReport = await saveUniswapReport()
+  let defiTlvReport = await saveTLVReport()
+  let tweet = await tweetTLVReport(defiTlvReport)
 
-  let stablecoinTweet = await tweetStablecoinTransferReport()
-  let uniswapTweet = await tweetUniswapReport()
+  // let stablecoinReport = await saveStablecoinTransferReport()
+  // let stablecoinTweet = await tweetStablecoinTransferReport({send: false})
+  
+  // let uniswapReport = await saveUniswapReport()
+  // let uniswapTweet = await tweetUniswapReport({send: false})
 }
 

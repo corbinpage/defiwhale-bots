@@ -4,6 +4,7 @@ const Mustache = require('mustache');
 const {
   getMessageFromSNS,
   getPriceFromSymbol,
+  getPriceFromSymbol2,
   formatAmount,
   getLatestTransferReport,
   sendTweetMessage } = require('./utils');
@@ -27,6 +28,8 @@ function isImportantTransfer(params) {
 	// Based on USD amount transferred
 	if(params.tokenSymbol === 'DAI' && params.amountUsd >= daiMaxAmountUsd) {
 		confirmSendMessage = true
+	} else if(params.tokenSymbol === 'SAI' && params.amountUsd >= daiMaxAmountUsd) {
+		confirmSendMessage = true
 	} else if(params.tokenSymbol === 'USDC' && params.amountUsd >= usdcMaxAmountUsd) {
 		confirmSendMessage = true
 	} else if(params.tokenSymbol === 'MKR' && params.amountUsd >= mkrMaxAmountUsd) {
@@ -34,7 +37,7 @@ function isImportantTransfer(params) {
 	}
 
 	console.log(`Send ${params.amount} ${params.tokenSymbol} ($${params.amountUsd}): ${confirmSendMessage}`)
-	console.log(`Compared to: ${params.tokenSymbol === 'DAI' ? daiMaxAmountUsd
+	console.log(`Compared to: ${(params.tokenSymbol === 'DAI' || params.tokenSymbol === 'SAI') ? daiMaxAmountUsd
 		: params.tokenSymbol === 'USDC' ? usdcMaxAmountUsd : mkrMaxAmountUsd}`)
 	console.log(`Send Tweet: ${confirmSendMessage ? 'Yes' : 'No'}`)
 

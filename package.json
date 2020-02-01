@@ -22,6 +22,7 @@
     "aws-sdk": "^2.511.0",
     "axios": "^0.18.0",
     "bignumber.js": "^9.0.0",
+    "cheerio": "^1.0.0-rc.3",
     "eth-dagger": "0.0.5",
     "ethers": "^4.0.27",
     "json-rules-engine": "^2.3.6",

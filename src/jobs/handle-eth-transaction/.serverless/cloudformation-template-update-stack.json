@@ -1,0 +1,255 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "The AWS CloudFormation template for this Serverless application",
+  "Resources": {
+    "ServerlessDeploymentBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "StartLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/handle-eth-transaction-dev-start"
+      }
+    },
+    "WriteTransactionLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/handle-eth-transaction-dev-writeTransaction"
+      }
+    },
+    "IamRoleLambdaExecution": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": {
+              "Fn::Join": [
+                "-",
+                [
+                  "dev",
+                  "handle-eth-transaction",
+                  "lambda"
+                ]
+              ]
+            },
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/handle-eth-transaction-dev-start:*"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/handle-eth-transaction-dev-writeTransaction:*"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/handle-eth-transaction-dev-start:*:*"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/handle-eth-transaction-dev-writeTransaction:*:*"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:Query",
+                    "dynamodb:Scan",
+                    "dynamodb:GetItem",
+                    "dynamodb:PutItem",
+                    "dynamodb:UpdateItem"
+                  ],
+                  "Resource": "arn:aws:dynamodb:us-east-1:061031305521:table/ETH_TRANSACTIONS"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetRecords",
+                    "dynamodb:GetShardIterator",
+                    "dynamodb:DescribeStream",
+                    "dynamodb:ListStreams"
+                  ],
+                  "Resource": "arn:aws:dynamodb:us-east-1:061031305521:table/ETH_TRANSACTIONS/stream/*"
+                }
+              ]
+            }
+          }
+        ],
+        "Path": "/",
+        "RoleName": {
+          "Fn::Join": [
+            "-",
+            [
+              "handle-eth-transaction",
+              "dev",
+              "us-east-1",
+              "lambdaRole"
+            ]
+          ]
+        }
+      }
+    },
+    "CommonLibsLambdaLayer": {
+      "Type": "AWS::Lambda::LayerVersion",
+      "Properties": {
+        "Content": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/handle-eth-transaction/dev/1579404218763-2020-01-19T03:23:38.763Z/commonLibs.zip"
+        },
+        "LayerName": "commonLibs",
+        "CompatibleRuntimes": [
+          "nodejs8.10"
+        ]
+      }
+    },
+    "StartLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/handle-eth-transaction/dev/1579404218763-2020-01-19T03:23:38.763Z/handle-eth-transaction.zip"
+        },
+        "FunctionName": "handle-eth-transaction-dev-start",
+        "Handler": "handler.start",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        },
+        "Runtime": "nodejs12.x",
+        "Timeout": 900,
+        "Layers": [
+          {
+            "Ref": "CommonLibsLambdaLayer"
+          }
+        ]
+      },
+      "DependsOn": [
+        "StartLogGroup",
+        "IamRoleLambdaExecution"
+      ]
+    },
+    "StartLambdaVersionzOakoyiwScDdurboX9AfZ7y4JApTSemb4iqewb9864": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "StartLambdaFunction"
+        },
+        "CodeSha256": "VnEqMnN4s5WdvUVHhOAJHpaZQ8mmnTbrYlbF4sJYh50="
+      }
+    },
+    "WriteTransactionLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/handle-eth-transaction/dev/1579404218763-2020-01-19T03:23:38.763Z/handle-eth-transaction.zip"
+        },
+        "FunctionName": "handle-eth-transaction-dev-writeTransaction",
+        "Handler": "handler.writeTransaction",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        },
+        "Runtime": "nodejs12.x",
+        "Timeout": 900,
+        "Layers": [
+          {
+            "Ref": "CommonLibsLambdaLayer"
+          }
+        ]
+      },
+      "DependsOn": [
+        "WriteTransactionLogGroup",
+        "IamRoleLambdaExecution"
+      ]
+    },
+    "WriteTransactionLambdaVersionnrG4Vf7NZ6FhbgAwg4SaZkq7FAtV3kSyxaW8oEHd6A": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "WriteTransactionLambdaFunction"
+        },
+        "CodeSha256": "VnEqMnN4s5WdvUVHhOAJHpaZQ8mmnTbrYlbF4sJYh50="
+      }
+    }
+  },
+  "Outputs": {
+    "ServerlessDeploymentBucketName": {
+      "Value": {
+        "Ref": "ServerlessDeploymentBucket"
+      }
+    },
+    "CommonLibsLambdaLayerQualifiedArn": {
+      "Description": "Current Lambda layer version",
+      "Value": {
+        "Ref": "CommonLibsLambdaLayer"
+      }
+    },
+    "StartLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "StartLambdaVersionzOakoyiwScDdurboX9AfZ7y4JApTSemb4iqewb9864"
+      }
+    },
+    "WriteTransactionLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "WriteTransactionLambdaVersionnrG4Vf7NZ6FhbgAwg4SaZkq7FAtV3kSyxaW8oEHd6A"
+      }
+    }
+  }
+}

@@ -23,7 +23,6 @@ async function getUniswapDailyReportFromTheGraph(startDate=new Date(), currencie
 		    ethBalance
 		    tokenBalance
 		    marginalEthRate
-		    ROI
 		    tokenPriceUSD
 		    totalEvents
 		  }

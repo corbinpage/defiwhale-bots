@@ -1,0 +1,66 @@
+{"data":[{"items":{"rows":[{"label":"Payment Frequency","content":"Interest is payable on March 1 and September 1 of each year commencing March 1, 2020"},{"columns":[{"label":"Call Date","content":"December 1, 2024"},{"label":"Total Bond Amount","content":"$654,000"},{"label":"Maturity Date","content":"2029"}]},{"columns":[{"label":"Denomination","content":"$250"},{"label":"Maturity Date","content":"2029"},{"label":"Lockup Period","content":"6 Months"}]}]},"title":"Final Term Sheet"}]}
+
+{"data":[{"items":{"rows":[{"label": "ISSUER", "content": "CREDIT SUISSE NY BRANCH AG"},
+{"label": "ISSUE SIZE", "content": "$656 Million  USD"},
+{"label": "TRADE DATE", "content": "08/13/19"},
+{"label": "SETTLEMENT DATE", "content": "08/13/19"},
+{"label": "MATURITY DATE", "content": "02/13/20"},
+{"label": "PAYMENT DATES", "content": "Monthly. Pays on 9/13/19, 10/15/19, 11/13/19, 12/13/19, 1/13/20, 2/13/20"},
+
+{"columns":[
+
+{"label": "ISSUER", "content": "CREDIT SUISSE NY BRANCH AG"},
+{"label": "ISSUE SIZE", "content": "$656 Million  USD"}
+
+]}
+
+
+{"label": "PRICE", "content": "100"},
+{"label": "INDEX", "content": "Fed Funds Effective"},
+{"label": "SPREAD TO INDEX", "content": "+32bps"},
+{"label": "FIRST COUPON", "content": "2.44%"},
+{"label": "CALL FEATURES", "content": "Non-Call Life"},
+{"label": "DAY COUNT BASIS", "content": "ACT/360"},
+{"label": "INTEREST DETERMINATION DATES", "content": "Daily, ONE Day Look Back Fed Funds Effective H.15 as shown on FEDL on Bloomberg or successor pages."},
+{"label": "CUSIP", "content": "22549LUZ6"},
+{"label": "DELIVERY", "content": "DTC 355"}]},"title":"Final Term Sheet"}]}
+
+
+
+{"label": "ISSUER", "content": "CREDIT SUISSE NY BRANCH AG"},
+{"label": "ISSUE SIZE", "content": "$656 Million  USD"},
+{"label": "TRADE DATE", "content": "08/13/19"},
+{"label": "SETTLEMENT DATE", "content": "08/13/19"},
+{"label": "MATURITY DATE", "content": "02/13/20"},
+{"label": "PAYMENT DATES", "content": "Monthly. Pays on 9/13/19, 10/15/19, 11/13/19, 12/13/19, 1/13/20, 2/13/20"},
+
+{"label": "PRICE", "content": "100"},
+{"label": "INDEX", "content": "Fed Funds Effective"},
+{"label": "SPREAD TO INDEX", "content": "+32bps"},
+{"label": "FIRST COUPON", "content": "2.44%"},
+{"label": "CALL FEATURES", "content": "Non-Call Life"},
+{"label": "DAY COUNT BASIS", "content": "ACT/360"},
+{"label": "INTEREST DETERMINATION DATES", "content": "Daily, ONE Day Look Back Fed Funds Effective H.15 as shown on FEDL on Bloomberg or successor pages."},
+{"label": "CUSIP", "content": "22549LUZ6"},
+{"label": "DELIVERY", "content": "DTC 355"},
+
+ISSUER: CREDIT SUISSE NY BRANCH AG
+ISSUE SIZE: USD $656 Million
+TRADE DATE: 08/13/19
+SETTLEMENT DATE: 08/13/19
+MATURITY DATE: 02/13/20
+PAYMENT DATES: Monthly. Pays on 9/13/19, 10/15/19, 11/13/19, 12/13/19,
+
+1/13/20, 2/13/20.
+
+PRICE: 100
+INDEX: Fed Funds Effective
+SPREAD TO INDEX: +32bps
+FIRST COUPON: 2.44%
+CALL FEATURES: Non-Call Life
+DAY COUNT BASIS: ACT/360
+INTEREST DETERMINATION
+DATES: Daily, ONE Day Look Back Fed Funds Effective H.15 as shown on FEDL on Bloomberg or successor pages.
+
+CUSIP: 22549LUZ6
+DELIVERY: DTC 355

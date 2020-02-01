@@ -27,9 +27,9 @@ async function createMessageForUniswapReport(reportData, currencies=['DAI', 'MKR
   return message
 }
 
-module.exports.start = async (reportData={}) => {
+module.exports.start = async (send=false) => {
   // Get latest report from DynamoDB
-  reportData = await getReportSummaryForDay('DAILY_UNISWAP_VOLUME_SUMMARY', new Date())
+  let reportData = await getReportSummaryForDay('DAILY_UNISWAP_VOLUME_SUMMARY', new Date())
 
   // console.log(reportData.data.exchangeDayDatas)
 
@@ -41,8 +41,10 @@ module.exports.start = async (reportData={}) => {
     console.log(tweet)
 
     // Send message to lambda function to tweet
-    let response = await sendTweetMessage({message: tweet})
-    return response
+    if(send) {
+      let response = await sendTweetMessage({message: tweet})
+      return response      
+    }
   }
 
   return null
