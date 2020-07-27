@@ -46,6 +46,8 @@ provider:
   environment: 
     ALETHIO_API_KEY: 'main_ukvahumjgnmoedfvzkr2qxwvozmlyk4p'
     DYNAMODB_TABLE: 'DAILY_TRANSFER_SUMMARY'
+    CODEFI_CLIENT_ID: 'CP1iOols3NIJrxakLZFt5VTycd19wWuT'
+    CODEFI_CLIENT_SECRET: 'g0pO4KxOcLwmPhYyj5fWoyDWtbWh0EjzdJ8k3Wvqr1eOtDBmvTgEOtVCaiqmh6hQ'
   iamRoleStatements:
     - Effect: Allow
       Action:

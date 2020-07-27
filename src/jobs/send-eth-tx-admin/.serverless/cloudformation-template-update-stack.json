@@ -1,0 +1,267 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "The AWS CloudFormation template for this Serverless application",
+  "Resources": {
+    "ServerlessDeploymentBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "TransferTokensLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/send-eth-tx-admin-dev-transferTokens"
+      }
+    },
+    "CmpdMintcTokenLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/send-eth-tx-admin-dev-cmpdMintcToken"
+      }
+    },
+    "IamRoleLambdaExecution": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": {
+              "Fn::Join": [
+                "-",
+                [
+                  "dev",
+                  "send-eth-tx-admin",
+                  "lambda"
+                ]
+              ]
+            },
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/send-eth-tx-admin-dev-transferTokens:*"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/send-eth-tx-admin-dev-cmpdMintcToken:*"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/send-eth-tx-admin-dev-transferTokens:*:*"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/send-eth-tx-admin-dev-cmpdMintcToken:*:*"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:Query",
+                    "dynamodb:Scan",
+                    "dynamodb:GetItem",
+                    "dynamodb:PutItem",
+                    "dynamodb:UpdateItem"
+                  ],
+                  "Resource": "arn:aws:dynamodb:us-east-1:061031305521:table/ETH_TRANSACTIONS"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetRecords",
+                    "dynamodb:GetShardIterator",
+                    "dynamodb:DescribeStream",
+                    "dynamodb:ListStreams"
+                  ],
+                  "Resource": "arn:aws:dynamodb:us-east-1:061031305521:table/ETH_TRANSACTIONS/stream/*"
+                }
+              ]
+            }
+          }
+        ],
+        "Path": "/",
+        "RoleName": {
+          "Fn::Join": [
+            "-",
+            [
+              "send-eth-tx-admin",
+              "dev",
+              "us-east-1",
+              "lambdaRole"
+            ]
+          ]
+        }
+      }
+    },
+    "CommonLibsLambdaLayer": {
+      "Type": "AWS::Lambda::LayerVersion",
+      "Properties": {
+        "Content": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/send-eth-tx-admin/dev/1581739681934-2020-02-15T04:08:01.934Z/commonLibs.zip"
+        },
+        "LayerName": "commonLibs",
+        "CompatibleRuntimes": [
+          "nodejs8.10"
+        ]
+      }
+    },
+    "TransferTokensLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/send-eth-tx-admin/dev/1581739681934-2020-02-15T04:08:01.934Z/transferTokens.zip"
+        },
+        "FunctionName": "send-eth-tx-admin-dev-transferTokens",
+        "Handler": "transferTokens.start",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        },
+        "Runtime": "nodejs12.x",
+        "Timeout": 900,
+        "Environment": {
+          "Variables": {
+            "DEFI_ADMIN_PRIVATE_KEY": "72C6417E0A43C05190D7AF0A4CB97A4D5694214787A1BADC0B00F5AB93D7945C",
+            "INFURA_API_KEY": "92981b973ff94916b3b49080d167689d"
+          }
+        },
+        "Layers": [
+          {
+            "Ref": "CommonLibsLambdaLayer"
+          }
+        ]
+      },
+      "DependsOn": [
+        "TransferTokensLogGroup",
+        "IamRoleLambdaExecution"
+      ]
+    },
+    "TransferTokensLambdaVersion8dRSSI8326yIQiLMqjBLGyUa9YYpsQEIu0q979MoM": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "TransferTokensLambdaFunction"
+        },
+        "CodeSha256": "X0+SqhTBOl8kvSemsEwIhJzEML1Aa2rGxqwTXBbIfpk="
+      }
+    },
+    "CmpdMintcTokenLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/send-eth-tx-admin/dev/1581739681934-2020-02-15T04:08:01.934Z/cmpdMintcToken.zip"
+        },
+        "FunctionName": "send-eth-tx-admin-dev-cmpdMintcToken",
+        "Handler": "cmpdMintcToken.start",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        },
+        "Runtime": "nodejs12.x",
+        "Timeout": 900,
+        "Environment": {
+          "Variables": {
+            "DEFI_ADMIN_PRIVATE_KEY": "72C6417E0A43C05190D7AF0A4CB97A4D5694214787A1BADC0B00F5AB93D7945C",
+            "INFURA_API_KEY": "92981b973ff94916b3b49080d167689d"
+          }
+        },
+        "Layers": [
+          {
+            "Ref": "CommonLibsLambdaLayer"
+          }
+        ]
+      },
+      "DependsOn": [
+        "CmpdMintcTokenLogGroup",
+        "IamRoleLambdaExecution"
+      ]
+    },
+    "CmpdMintcTokenLambdaVersionQd6gN5ZWw09t6guIzCnqROUa0TDrLcmKTS9cTbLLWZo": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "CmpdMintcTokenLambdaFunction"
+        },
+        "CodeSha256": "X0+SqhTBOl8kvSemsEwIhJzEML1Aa2rGxqwTXBbIfpk="
+      }
+    }
+  },
+  "Outputs": {
+    "ServerlessDeploymentBucketName": {
+      "Value": {
+        "Ref": "ServerlessDeploymentBucket"
+      }
+    },
+    "CommonLibsLambdaLayerQualifiedArn": {
+      "Description": "Current Lambda layer version",
+      "Value": {
+        "Ref": "CommonLibsLambdaLayer"
+      }
+    },
+    "TransferTokensLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "TransferTokensLambdaVersion8dRSSI8326yIQiLMqjBLGyUa9YYpsQEIu0q979MoM"
+      }
+    },
+    "CmpdMintcTokenLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "CmpdMintcTokenLambdaVersionQd6gN5ZWw09t6guIzCnqROUa0TDrLcmKTS9cTbLLWZo"
+      }
+    }
+  }
+}

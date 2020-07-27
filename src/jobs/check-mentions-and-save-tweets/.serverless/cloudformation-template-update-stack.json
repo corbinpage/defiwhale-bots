@@ -1,0 +1,230 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "The AWS CloudFormation template for this Serverless application",
+  "Resources": {
+    "ServerlessDeploymentBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "StartLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/check-mentions-and-save-tweets-dev-start"
+      }
+    },
+    "IamRoleLambdaExecution": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": {
+              "Fn::Join": [
+                "-",
+                [
+                  "dev",
+                  "check-mentions-and-save-tweets",
+                  "lambda"
+                ]
+              ]
+            },
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/check-mentions-and-save-tweets-dev-start:*"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/check-mentions-and-save-tweets-dev-start:*:*"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "Path": "/",
+        "RoleName": {
+          "Fn::Join": [
+            "-",
+            [
+              "check-mentions-and-save-tweets",
+              "dev",
+              "us-east-1",
+              "lambdaRole"
+            ]
+          ]
+        }
+      }
+    },
+    "CommonLibsLambdaLayer": {
+      "Type": "AWS::Lambda::LayerVersion",
+      "Properties": {
+        "Content": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/check-mentions-and-save-tweets/dev/1588886496901-2020-05-07T21:21:36.901Z/commonLibs.zip"
+        },
+        "LayerName": "commonLibs",
+        "CompatibleRuntimes": [
+          "nodejs8.10"
+        ]
+      }
+    },
+    "StartLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/check-mentions-and-save-tweets/dev/1588886496901-2020-05-07T21:21:36.901Z/check-mentions-and-save-tweets.zip"
+        },
+        "FunctionName": "check-mentions-and-save-tweets-dev-start",
+        "Handler": "handler.start",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        },
+        "Runtime": "nodejs12.x",
+        "Timeout": 600,
+        "Environment": {
+          "Variables": {
+            "TWITTER_CONSUMER_KEY": "idquZkkWau3s4gglIEv1T2DOh",
+            "TWITTER_CONSUMER_SECRET": "kiLM1u79Z1Ba0VtemYW7YdajQbLBcf0bNWr5x3y1xBAjEFl2tK",
+            "TWITTER_ACCESS_TOKEN": "1257453620834033671-Tdbhznei14wnKJFNJItXfyA0uBY4m0",
+            "TWITTER_ACCESS_TOKEN_SECRET": "k3CzXQTX7IXpeewpFKINLguKZ2P05raqaLjNxEeac8NKp"
+          }
+        },
+        "Layers": [
+          {
+            "Ref": "CommonLibsLambdaLayer"
+          }
+        ]
+      },
+      "DependsOn": [
+        "StartLogGroup",
+        "IamRoleLambdaExecution"
+      ]
+    },
+    "StartLambdaVersionkF8DeDjbzUo9vSg0HU8m7vMRLCeGgVjza3uV83S1uI": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "StartLambdaFunction"
+        },
+        "CodeSha256": "MHixr0SMS8dZjBnGhVXImmZ5omTredsW1ZpvM12LOkg="
+      }
+    },
+    "StartEventsRuleSchedule1": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "ScheduleExpression": "rate(5 minutes)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "StartLambdaFunction",
+                "Arn"
+              ]
+            },
+            "Id": "startSchedule"
+          }
+        ]
+      }
+    },
+    "StartLambdaPermissionEventsRuleSchedule1": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "StartLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": {
+          "Fn::Join": [
+            "",
+            [
+              "events.",
+              {
+                "Ref": "AWS::URLSuffix"
+              }
+            ]
+          ]
+        },
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "StartEventsRuleSchedule1",
+            "Arn"
+          ]
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "ServerlessDeploymentBucketName": {
+      "Value": {
+        "Ref": "ServerlessDeploymentBucket"
+      }
+    },
+    "CommonLibsLambdaLayerQualifiedArn": {
+      "Description": "Current Lambda layer version",
+      "Value": {
+        "Ref": "CommonLibsLambdaLayer"
+      }
+    },
+    "StartLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "StartLambdaVersionkF8DeDjbzUo9vSg0HU8m7vMRLCeGgVjza3uV83S1uI"
+      }
+    }
+  }
+}

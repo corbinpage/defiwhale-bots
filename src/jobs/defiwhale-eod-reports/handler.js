@@ -4,6 +4,10 @@ const {
   saveTLVReport,
   tweetTLVReport,
 } = require('./tlvReport');
+const {
+  saveLendingRateReport,
+  tweetLendingRateReport,
+} = require('./lendingRateReport');
 
 async function saveStablecoinTransferReport() {
   const {
@@ -48,6 +52,10 @@ async function tweetUniswapReport() {
 module.exports.start = async (event) => {
   let defiTlvReport = await saveTLVReport()
   let tweet = await tweetTLVReport(defiTlvReport)
+
+  let lendingRatereport = await saveLendingRateReport()
+  let tweet2 = await tweetLendingRateReport(lendingRatereport)
+
 
   // let stablecoinReport = await saveStablecoinTransferReport()
   // let stablecoinTweet = await tweetStablecoinTransferReport({send: false})
