@@ -1,4 +1,4 @@
-# Welcome to Serverless!
+  # Welcome to Serverless!
 #
 # This file is the main config file for your service.
 # It's very minimal at this point and uses default values.
@@ -19,7 +19,7 @@ service: defiwhale-eod-reports # NOTE: update this with your service name
 
 provider:
   name: aws
-  runtime: nodejs8.10
+  runtime: nodejs12.x
   timeout: 600
 
 # you can overwrite defaults here
@@ -44,10 +44,10 @@ provider:
 
 # you can define service wide environment variables here
   environment: 
-    ALETHIO_API_KEY: 'main_ukvahumjgnmoedfvzkr2qxwvozmlyk4p'
-    DYNAMODB_TABLE: 'DAILY_TRANSFER_SUMMARY'
-    CODEFI_CLIENT_ID: 'CP1iOols3NIJrxakLZFt5VTycd19wWuT'
-    CODEFI_CLIENT_SECRET: 'g0pO4KxOcLwmPhYyj5fWoyDWtbWh0EjzdJ8k3Wvqr1eOtDBmvTgEOtVCaiqmh6hQ'
+    ALETHIO_API_KEY: ''
+    DYNAMODB_TABLE: ''
+    CODEFI_CLIENT_ID: ''
+    CODEFI_CLIENT_SECRET: ''
   iamRoleStatements:
     - Effect: Allow
       Action:

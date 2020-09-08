@@ -1,23 +1,23 @@
 {
-  "name": "botani",
+  "name": "defiwhale-bots",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "localstack": "docker-compose up -d;aws --endpoint-url=http://localhost:4575 sns create-topic --name botani",
+    "localstack": "docker-compose up -d;aws --endpoint-url=http://localhost:4575 sns create-topic --name defiwhale-bots",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/corbinpage/botani.git"
+    "url": "git+https://github.com/corbinpage/defiwhale-bots.git"
   },
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/corbinpage/botani/issues"
+    "url": "https://github.com/corbinpage/defiwhale-bots/issues"
   },
-  "homepage": "https://github.com/corbinpage/botani#readme",
+  "homepage": "https://github.com/corbinpage/defiwhale-bots#readme",
   "dependencies": {
     "aws-sdk": "^2.511.0",
     "axios": "^0.18.0",

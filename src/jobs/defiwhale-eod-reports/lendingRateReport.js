@@ -2,8 +2,10 @@
 
 const axios = require('axios')
 const $ = require('cheerio')
-const AWS = require('aws-sdk');
-AWS.config.update({region: 'us-east-1'});
+const n = require('numeral')
+const AWS = require('aws-sdk')
+AWS.config.update({region: 'us-east-1'})
+
 const {
   formatAmount,
   getDayId,
@@ -38,7 +40,7 @@ async function getReport() {
       {
         lendingProtocolMarkets(first: 100, filter: {id: {in: ["aave/v1/dai","compound/v2/dai","ddex/v1/dai","dydx/v1/dai",]}}) {
           id
-          metricsState(first: 1, aggregationWindow: _30_MIN) {
+          metricsState(first: 1, aggregationWindow: _15_MIN) {
             debtAssetAprAvg
             debtAmountInUsdAvg
             supplyAmountInUsdAvg
@@ -75,7 +77,7 @@ async function putReport(params) {
     TableName: 'DAILY_LENDING_REPORT',
     Item: {
       dayId: dayId,
-      daiRatedata: params,
+      daiRateData: params,
       createdAt: dateTime,
       updatedAt: dateTime
     },
@@ -122,7 +124,7 @@ module.exports.saveLendingRateReport = async (event) => {
 
   console.log(JSON.stringify(report))
 
-  if(report && report.length) {
+  if(report) {
     // Write report to DynamoDB
     let res = await putReport(report)
   }
@@ -130,15 +132,45 @@ module.exports.saveLendingRateReport = async (event) => {
   return report
 }
 
+
+function createSupplyDebtTweet(report) {
+  let usdformatter = new Intl.NumberFormat('en-US', {
+    maximumFractionDigits: 0
+  });
+  let message = '💰🏦 Dai Lending Util% Supply Debt:\n\n'
+
+  let reportSorted = report.lendingProtocolMarkets.sort((a, b) => {
+    return b.metricsState[0].supplyAmountInUsdAvg - a.metricsState[0].supplyAmountInUsdAvg
+  })
+
+  for(let i = 0; i < reportSorted.length; i++) {
+    let _ = reportSorted[i]
+    let name = _.id === 'aave/v1/dai' ? 'Aave' :
+      _.id === 'dydx/v1/dai' ? 'dydx' :
+      _.id === 'compound/v2/dai' ? 'Compound' :
+      _.id === 'ddex/v1/dai' ? 'DDex' : ''
+
+    let nextText = `${name}: ${usdformatter.format(100*(_.metricsState[0].debtAmountInUsdAvg/_.metricsState[0].supplyAmountInUsdAvg))}% ${n(_.metricsState[0].supplyAmountInUsdAvg).format('($0.00a)')} ${n(_.metricsState[0].debtAmountInUsdAvg).format('($0.00a)')}\n`
+
+    message += nextText
+  }
+
+  message += `\n#DeFi`
+
+  return message
+}
+
 module.exports.tweetLendingRateReport = async (report) => {
   let tweet
 
   if(report && report.data) {
     tweet = await createTweet(report.data)
+    let supplyDebtTweet = await createSupplyDebtTweet(report.data)
 
     console.log(tweet)
+    console.log(supplyDebtTweet)
 
-    let response = await sendTweetMessage({message: tweet})
+    // let response = await sendTweetMessage({message: tweet})
   }
 
   return tweet

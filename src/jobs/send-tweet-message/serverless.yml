@@ -43,10 +43,10 @@ provider:
 
 # you can define service wide environment variables here
   environment:
-    TWITTER_CONSUMER_KEY: 'NxEL5A44eesX9fvQ2ApRLqbTO'
-    TWITTER_CONSUMER_SECRET: 'ZUQAHV7GMTcMTR5itK3mKEDSUhviuw8bmNxZ6F3DkYOdipG7kf'
-    TWITTER_ACCESS_TOKEN: '1128490279722455041-RCreosbHpoYkQiPUCyOEMUobZ0hLez'
-    TWITTER_ACCESS_TOKEN_SECRET: 'pVAeHRG5YlJW75i8ORDqtrPIlptfzl35oLCoLzobjPzZa'
+    TWITTER_CONSUMER_KEY: ''
+    TWITTER_CONSUMER_SECRET: ''
+    TWITTER_ACCESS_TOKEN: ''
+    TWITTER_ACCESS_TOKEN_SECRET: ''
 
 # you can add packaging information here
 #package:
